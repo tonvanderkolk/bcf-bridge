@@ -6,7 +6,7 @@ Kleine macOS-tool die een Behringer BCF2000 laat werken als Mackie Control-opper
 
 ## Status
 
-Mijlpaal 2: command line-tool die alle kanalen vertaalt. Getest in Logic: fader 1 (versie 0.1.0) werkt stabiel zonder terugschieten.
+Mijlpaal 2: command line-tool die alle kanalen vertaalt. Getest in Logic op 4 november 2026: faders, encoders, mute, solo, bank en kanaal werken. Transport heeft nog geen knop.
 
 - Toont alle MIDI-poorten en koppelt automatisch aan de BCF2000 (ook na loskoppelen)
 - Maakt virtuele poort "BCF Bridge" aan (in en uit)

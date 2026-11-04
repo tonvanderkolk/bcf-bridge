@@ -15,7 +15,7 @@
 - [x] Bank en kanaal links/rechts
 - [x] Transport
 - [x] Learn-modus voor alle elementen, ook "alles in één keer"
-- [ ] Test met Ton in Logic: alles leren en alle kanalen
+- [x] Test met Ton in Logic: faders, encoders, mute, solo, bank en kanaal werken (4 november 2026)
 
 ## 0.3 Menubalk-app
 - [ ] SwiftUI menubalk-app met status BCF2000 en Logic
