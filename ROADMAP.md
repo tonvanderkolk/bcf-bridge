@@ -29,7 +29,9 @@
 - [x] Test met Ton: app installeren, starten bij inloggen, werken met Logic na herstart, één Mackie Control (4 november 2026)
 
 ## Later
-- [ ] Transport (play, stop, record) op knoppen, bijvoorbeeld als derde functie voor een knoprij
 - [ ] Mapping bekijken en per element opnieuw leren vanuit de app
 - [ ] Onderzoeken of een eigen BCF2000-preset faders als 14-bit Pitch Bend kan sturen
 - [ ] Vrij te kiezen in- en uitgangspoort in de app (5-pins MIDI via interface)
+
+## Bewust niet
+- Transport (play, stop, record) op de BCF2000: Ton gebruikt hem om te mixen (faders, panning, mute, solo), niet voor transport (besluit 4 november 2026)
