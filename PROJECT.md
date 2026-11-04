@@ -10,7 +10,7 @@ Mijlpaal 3: menubalk-app "BCF Bridge" met dezelfde bridge als de command line-to
 
 Logic voegde na elke start zelf een BCF2000-control surface toe. De bridge zet daarom bij het starten de modelnaam van de BCF2000 in CoreMIDI op "BCF2000 Bridge". De BCF2000 zelf wordt niet aangepast. Dit is uit te zetten in het menu; dan gaat de naam terug naar "BCF2000".
 
-Mijlpaal 5: voorbereiding om openbaar te maken. App tweetalig, Engelse README (README.md), MIT-licentie. De repository is nog privé.
+Mijlpaal 5: voorbereiding om openbaar te maken. App tweetalig, Engelse README (README.md), MIT-licentie. Openbaar sinds 4 november 2026: https://github.com/tonvanderkolk/bcf-bridge, eerste release v0.5.0.
 
 - Menubalk-icoon met status BCF2000 en Logic (driehoek = BCF2000 niet gevonden of startfout)
 - Functie van beide knoprijen kiezen, fader-loslaattijd instellen, zichtbare bevestiging na opslaan

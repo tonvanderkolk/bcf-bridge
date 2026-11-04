@@ -38,8 +38,8 @@
 - [x] Engelse README en MIT-licentie
 - [x] Modelnaam-aanpassing uitschakelbaar
 - [x] Release-zip
-- [ ] Ton controleert README en app
-- [ ] Repository op public zetten en eerste release publiceren
+- [x] Ton controleert README en app, screenshots toegevoegd
+- [x] Repository openbaar en release v0.5.0 gepubliceerd (4 november 2026)
 - [ ] Commentaar in de code naar het Engels
 - [ ] Eventueel: Apple Developer ID en notarisatie, zodat de app zonder waarschuwing opent
 

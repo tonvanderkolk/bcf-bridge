@@ -1,7 +1,7 @@
 # Changelog
 
 ## 0.5.0 - 2026-11-04
-Voorbereiding om het project openbaar te maken.
+Eerste openbare release (GitHub, v0.5.0).
 - App tweetalig: Engels standaard, Nederlands als de Mac in het Nederlands staat (of met BCF_BRIDGE_LANG=nl)
 - Technische MIDI-regels in de log, de command line-hulp en de selftest zijn Engelstalig
 - Modelnaam-aanpassing voor Logic is nu een instelling (standaard aan), met schakelaar in het menu en commando `hidemodel on|off`; uitzetten zet de naam terug naar "BCF2000"
