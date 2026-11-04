@@ -31,7 +31,7 @@
 ## 0.4 Mapping in de app
 - [x] Mappingvenster met alle koppelingen
 - [x] Per element opnieuw leren of wissen
-- [ ] Test met Ton
+- [x] Test met Ton: venster duidelijk, per element leren werkt (4 november 2026)
 
 ## Later
 - [ ] Onderzoeken of een eigen BCF2000-preset faders als 14-bit Pitch Bend kan sturen
