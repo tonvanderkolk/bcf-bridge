@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1 - 2026-11-04
+- App-icoon (drie faders), te herbouwen met `scripts/make-icon.swift`
+- TESTEN.md: automatisch toegevoegde BCF2000 in Logic niet verwijderen maar op een doodlopende poort zetten
+- Menubalk-app getest: BCF2000 en Logic verbonden, starten bij inloggen aan
+
 ## 0.3.0 - 2026-11-04
 - Menubalk-app "BCF Bridge" (SwiftUI): status van BCF2000 en Logic, knoprijfuncties, fader-loslaattijd, alles leren, exporteren, importeren, standaard herstellen, starten bij inloggen
 - Logvenster met kopieerknop en knop naar het logbestand

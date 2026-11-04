@@ -1,7 +1,7 @@
 import BridgeCore
 import Foundation
 
-public let bridgeVersion = "0.3.0"
+public let bridgeVersion = "0.3.1"
 
 public struct EngineOptions {
     public var inMatch = "BCF2000"
