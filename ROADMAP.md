@@ -24,7 +24,9 @@
 - [x] Automatisch opslaan met zichtbare bevestiging
 - [x] Starten bij inloggen
 - [x] Beveiliging tegen twee bridges tegelijk
-- [ ] Test met Ton: app installeren, starten bij inloggen, werken met Logic
+- [x] App-icoon
+- [x] Logic voegt de BCF2000 niet meer automatisch toe (modelnaam in CoreMIDI aangepast)
+- [x] Test met Ton: app installeren, starten bij inloggen, werken met Logic na herstart, één Mackie Control (4 november 2026)
 
 ## Later
 - [ ] Transport (play, stop, record) op knoppen, bijvoorbeeld als derde functie voor een knoprij
