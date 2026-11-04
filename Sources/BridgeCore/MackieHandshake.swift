@@ -15,6 +15,8 @@ public final class MackieHandshake {
     /// Verwerkt een SysEx van Logic. Geeft het antwoord terug (of nil) plus een korte uitleg.
     public func handle(_ m: [UInt8]) -> (reply: [UInt8]?, note: String?) {
         guard m.count >= 7, Array(m[0..<5]) == Self.header else { return (nil, nil) }
+        // Logic slaat de host connection reply (0x02) vaak over: elk ander commando betekent ook verbonden
+        if m[5] != 0x00 && m[5] != 0x0F { online = true }
         switch m[5] {
         case 0x00:
             return (Self.header + [0x01] + serial + challenge + [0xF7],

@@ -3,7 +3,7 @@ import Foundation
 /// Vertaalt één BCF2000-fader (7-bit CC) naar een Mackie-fader (14-bit Pitch Bend + touch) en terug.
 public final class FaderBridge {
     public let index: Int // 0 = fader 1
-    public var mapping: ControlMapping
+    public var mapping: ControlMapping?
     public var releaseMs: Int
     public var resyncMs = 150
     public var echoWindowMs = 150
@@ -23,15 +23,11 @@ public final class FaderBridge {
     private var lastSentToBCF: (value: Int, at: Double)?
     private var pendingFromLogic: Int?
 
-    public init(index: Int, mapping: ControlMapping, releaseMs: Int, clock: BridgeClock) {
+    public init(index: Int, mapping: ControlMapping?, releaseMs: Int, clock: BridgeClock) {
         self.index = index
         self.mapping = mapping
         self.releaseMs = releaseMs
         self.clock = clock
-    }
-
-    public func matches(_ m: [UInt8]) -> Bool {
-        m.count == 3 && m[0] == 0xB0 | UInt8(mapping.channel - 1) && Int(m[1]) == mapping.cc
     }
 
     static func to14(_ v: Int) -> Int { (v << 7) | v } // 0 -> 0, 127 -> 16383
@@ -99,6 +95,7 @@ public final class FaderBridge {
     }
 
     private func moveMotor(_ v7: Int, reason: String) {
+        guard let mapping else { return }
         bcfPosition = v7
         lastSentToBCF = (v7, clock.now)
         sendToBCF([0xB0 | UInt8(mapping.channel - 1), UInt8(mapping.cc), UInt8(v7)],

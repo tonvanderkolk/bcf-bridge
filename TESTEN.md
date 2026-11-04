@@ -1,23 +1,14 @@
-# Testronde 1: fader 1 in Logic
+# Testinstructies
 
-Doel: kijken of fader 1 van de BCF2000 netjes Logic bestuurt en of de motorfader Logic volgt zonder terug te schieten.
+## Eenmalige voorbereiding in Logic
 
-## 1. BCF2000 klaarzetten
+1. Ga naar **Logic Pro > Control Surfaces > Setup...**
+2. Daar mag alleen **Mackie Control** staan, met **Output Port** en **Input Port** op **BCF Bridge**.
+3. Staat er ook een **BCF2000** (toetsenbord-icoon)? Klik erop en druk op **Delete**. Logic voegt die soms zelf weer toe als het de BCF2000 ziet, dus kijk hier na elke herstart van Logic even.
 
-1. Sluit de BCF2000 via USB aan op de Mac mini.
-2. Controleer dat hij in USB-modus **U-1** staat (de modus kies je bij het aanzetten, zie de handleiding van de BCF2000). Staat er geen U-1 en weet je niet hoe het moet, laat het dan weten.
-3. Kies preset 1 (de fabriekspreset). Andere preset kan ook, dan gebruik je straks het learn-commando.
+## Bridge bouwen en starten
 
-## 2. Logic opruimen (eenmalig)
-
-1. Open Logic Pro.
-2. Ga naar **Logic Pro > Control Surfaces > Setup...**
-3. Staat daar al een Mackie Control of een BCF2000? Klik erop en druk op **Delete**. Logic mag de BCF2000 niet meer zelf als control surface gebruiken.
-4. Sluit het Setup-venster en sluit Logic.
-
-## 3. Bridge bouwen en starten
-
-Open **Terminal** en plak deze regels (één voor één):
+Doe dit in het Terminal-venster. Draait de bridge nog? Typ dan eerst `quit` en Enter.
 
 ```bash
 cd "/Users/tonvanderkolk/Documents/TvdK Apps/BCF Bridge"
@@ -31,45 +22,47 @@ swift build -c release
 .build/release/bcf-bridge
 ```
 
-Je ziet nu een lijst met MIDI-poorten en regels als `BCF2000 ingang verbonden: ...`. Laat dit venster open staan.
+Laat het venster openstaan zolang je met Logic werkt.
 
-Staat er **NIET gevonden**? Kopieer dan de hele tekst uit Terminal en plak die bij Claude Code.
+---
 
-## 4. Fader 1 controleren
+# Testronde 2: alle kanalen (versie 0.2.0)
 
-Beweeg fader 1 op de BCF2000. In Terminal moeten regels verschijnen met `BCF  -> bridge ... CC kan.1 #81`.
+## 1. Alles leren
 
-Zie je een ander CC-nummer, of reageert er niets? Typ in Terminal `learn`, druk op Enter en beweeg fader 1. De bridge onthoudt dan welke fader het is.
+1. Open Logic met een project met **minstens 8 sporen** (maak er anders een paar lege audiosporen bij).
+2. Typ in Terminal `learn` en druk op Enter.
+3. De bridge vraagt steeds om één element, bijvoorbeeld `LEARN: Fader 1: beweeg de fader`. Doe precies wat er staat en wacht tot je `GELEERD` ziet. Dan komt vanzelf het volgende.
+   - Faders: even op en neer bewegen.
+   - Encoders: een paar tikken **rechtsom** draaien en dan loslaten. Na een seconde gaat hij verder.
+   - Knoppen: **één keer kort** drukken.
+4. Volgorde: fader 1-8, encoder 1-8, bovenste knoprij 1-8, onderste knoprij 1-8, dan Bank links, Bank rechts, Kanaal links, Kanaal rechts (gebruik daarvoor vier knoppen rechtsonder), en tot slot Terugspoelen, Vooruitspoelen, Stop, Play, Record.
+5. Heb je geen knop over voor iets? Typ `skip` en Enter. Wil je stoppen? Typ `stop`.
+6. Typ daarna `mapping` om te zien wat waaraan gekoppeld is.
 
-## 5. Mackie Control toevoegen in Logic
+## 2. Testen
 
-1. Open Logic Pro met een project met minstens één audiospoor.
-2. Ga naar **Logic Pro > Control Surfaces > Setup...**
-3. Kies **New > Install...**, selecteer **Mackie Control** (Mackie Designs) en klik **Add**.
-4. Klik op het nieuwe Mackie-icoon. Zet in het rechterpaneel **Output Port** en **Input Port** allebei op **BCF Bridge**.
-5. In Terminal moet nu kort na elkaar staan: `Device query`, `Host connection reply` en `Mackie-verbinding staat`.
+1. **Faders 1-8**: beweeg ze één voor één. Logic moet meebewegen en na loslaten moeten ze blijven staan.
+2. **Encoders**: draai encoder 1. Het panorama van spoor 1 in Logic moet meedraaien. Na even wachten moet de LED-krans van de BCF2000 de stand van Logic tonen.
+3. **Bovenste knoprij (Mute)**: druk knop 1. Spoor 1 moet op mute gaan en het lampje aan. Nog een keer: mute uit, lampje uit. Klik ook eens in Logic zelf op M van spoor 1: het lampje moet volgen.
+4. **Onderste knoprij (Solo)**: hetzelfde voor solo.
+5. **Bank rechts / links**: de faders moeten naar sporen 9-16 en terug springen, en de motorfaders moeten meebewegen.
+6. **Transport**: play, stop, record, spoelen.
 
-## 6. Testen
+Wil je de onderste rij liever als Select of Rec? Typ bijvoorbeeld `row2 select` of `row2 rec`.
 
-Doe de volgende dingen rustig na elkaar:
+## 3. Resultaat terugsturen
 
-1. Beweeg fader 1 langzaam omhoog en omlaag. De volume-fader van spoor 1 in Logic moet meebewegen.
-2. Laat fader 1 los. Hij moet blijven staan en niet terugschieten.
-3. Versleep in Logic met de muis de volume-fader van spoor 1. De motorfader van de BCF2000 moet meebewegen.
-4. Start afspelen met volume-automatie op spoor 1 (als je dat hebt). De motorfader moet de automatie volgen.
+1. Typ `quit` en Enter.
+2. Laat Claude Code per punt hierboven weten wat werkte en wat niet. Claude Code leest het logbestand zelf uit `~/Library/Logs/BCF Bridge`.
 
-## 7. Resultaat terugsturen
+## Handige commando's
 
-1. Typ in Terminal `status` en druk op Enter.
-2. Typ `quit` en druk op Enter.
-3. De log staat ook als bestand in de Finder: **Ga > Ga naar map...** en plak `~/Library/Logs/BCF Bridge`. Pak het nieuwste bestand.
-4. Plak de inhoud van dat bestand (of de tekst uit Terminal) bij Claude Code, met een korte zin over wat je zag: werkte het, schoot de fader terug, bromde de motor?
+Typ `help` voor het hele overzicht. De belangrijkste:
 
-## Handige commando's in de bridge
-
-- `status` laat zien wat er verbonden is
-- `learn` leer fader 1 opnieuw
-- `release 600` touch pas na 600 ms stilstand loslaten (standaard 400)
-- `logall` ook meters en displayberichten loggen
-- `ports` alle MIDI-poorten opnieuw tonen
+- `learn` alles leren, `learn fader 3` of `learn bankright` één element opnieuw leren
+- `mapping` laat zien wat waaraan gekoppeld is
+- `row1 mute`, `row2 solo` functie van de knoprijen
+- `release 600` faders pas na 600 ms stilstand loslaten (standaard 400)
+- `status` verbinding en standen
 - `quit` stoppen

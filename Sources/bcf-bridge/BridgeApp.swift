@@ -1,7 +1,7 @@
 import BridgeCore
 import Foundation
 
-let appVersion = "0.1.0"
+let appVersion = "0.2.0"
 
 struct Options {
     var inMatch = "BCF2000"
@@ -18,31 +18,49 @@ final class BridgeApp {
     let handshake = MackieHandshake()
     var settings = BridgeSettings.load()
     var options: Options
-    let fader1: FaderBridge
+    let router: Router
+    let learner: Learner
 
     private var bcfParser = MIDIParser()
     private var logicParser = MIDIParser()
-    private var learning = false
     private var hiddenCount = 0
+    private var savedThisRun = false
 
     init(options: Options) {
         self.options = options
         io = MIDIIO(queue: queue)
         clock = QueueClock(queue: queue)
-        fader1 = FaderBridge(index: 0, mapping: settings.fader1, releaseMs: settings.touchReleaseMs, clock: clock)
+        router = Router(settings: settings, clock: clock)
+        learner = Learner(clock: clock)
 
-        fader1.sendToLogic = { [unowned self] bytes, why in self.toLogic(bytes, why) }
-        fader1.sendToBCF = { [unowned self] bytes, why in self.toBCF(bytes, why) }
-        fader1.note = { [unowned self] text in self.log.line("   ..  \(text)") }
+        router.sendToLogic = { [unowned self] bytes, why in self.toLogic(bytes, why) }
+        router.sendToBCF = { [unowned self] bytes, why in self.toBCF(bytes, why) }
+        router.note = { [unowned self] text in self.log.line("   ..  \(text)") }
+
+        learner.prompt = { [unowned self] target in
+            self.log.line("LEARN: \(target.label(self.settings)): \(target.instruction)   (typ skip om over te slaan, stop om te stoppen)")
+        }
+        learner.learned = { [unowned self] target, mapping, detail in
+            let cleared = self.settings.assign(mapping, to: target)
+            self.router.update(self.settings)
+            var msg = "GELEERD: \(target.label(self.settings)) = CC \(mapping.cc) kanaal \(mapping.channel)"
+            if !detail.isEmpty { msg += ", \(detail)" }
+            if !cleared.isEmpty {
+                msg += ". Weggehaald bij: " + cleared.map { $0.label(self.settings) }.joined(separator: ", ")
+            }
+            self.saveSettings(msg)
+        }
+        learner.finished = { [unowned self] text in self.log.line("LEARN: \(text)") }
     }
 
     func start() throws {
-        log.plain("BCF Bridge \(appVersion)  (command line test, alleen fader 1)")
+        log.plain("BCF Bridge \(appVersion)  (command line)")
         log.plain("Logbestand: \(log.fileURL.path)")
         log.plain("Instellingen: \(BridgeSettings.file.path)")
-        log.plain("Fader 1 = CC \(settings.fader1.cc) op kanaal \(settings.fader1.channel), touch loslaten na \(settings.touchReleaseMs) ms")
         log.plain("")
         printPorts()
+        log.plain("")
+        printMapping()
 
         io.onBCFBytes = { [unowned self] bytes in
             self.bcfParser.feed(bytes) { self.handleBCF($0) }
@@ -59,8 +77,27 @@ final class BridgeApp {
         reconnect()
         scheduleRetry()
         log.plain("")
-        log.plain("Commando's: learn, status, ports, logall, release <ms>, quit")
+        printHelp()
         log.plain("")
+    }
+
+    func printHelp() {
+        log.plain("""
+        Commando's (typen en Enter):
+          learn              alles leren: faders, encoders, knoprijen, bank/kanaal, transport
+          learn fader 3      één element leren (ook: encoder 2, push 1, top 4, bottom 5,
+                             bankleft, bankright, chanleft, chanright, rewind, forward, stop, play, record)
+          skip / stop        tijdens leren: element overslaan / leren stoppen
+          row1 mute          functie bovenste knoprij (mute, solo, select of rec)
+          row2 solo          functie onderste knoprij
+          mapping            toon wat waaraan gekoppeld is
+          status             toon verbinding en stand
+          release 400        fader-touch loslaten na zoveel ms stilstand
+          logall             meters en display-berichten wel/niet loggen
+          ports              toon MIDI-poorten
+          help               dit overzicht
+          quit               stoppen
+        """)
     }
 
     func printPorts() {
@@ -68,6 +105,14 @@ final class BridgeApp {
         for e in MIDIIO.sources() { log.plain("  - \(e.name)") }
         log.plain("MIDI-uitgangen (destinations):")
         for e in MIDIIO.destinations() { log.plain("  - \(e.name)") }
+    }
+
+    func printMapping() {
+        log.plain("Mapping:")
+        for t in BridgeSettings.allTargets {
+            log.plain("  \(t.label(settings).padding(toLength: 46, withPad: " ", startingAt: 0)) \(settings.mapping(for: t)?.short ?? "-")")
+        }
+        log.plain("  Touch loslaten na \(settings.touchReleaseMs) ms")
     }
 
     private var firstConnect = true
@@ -100,17 +145,9 @@ final class BridgeApp {
 
     private func handleBCF(_ m: [UInt8]) {
         log.line("BCF  -> bridge  \(MIDIDescribe.hex(m).padding(toLength: 12, withPad: " ", startingAt: 0))  \(MIDIDescribe.generic(m))")
-
-        if learning, m.count == 3, m[0] & 0xF0 == 0xB0 {
-            learning = false
-            let mapping = ControlMapping(channel: Int(m[0] & 0x0F) + 1, cc: Int(m[1]))
-            settings.fader1 = mapping
-            fader1.mapping = mapping
-            saveSettings("Fader 1 geleerd: CC \(mapping.cc) op kanaal \(mapping.channel)")
-            return
-        }
-        if fader1.matches(m) {
-            fader1.fromBCF(value: Int(m[2]))
+        if learner.feed(m) { return }
+        if !router.fromBCF(m) {
+            log.line("   ..  niet gekoppeld (gebruik learn om dit element te koppelen)")
         }
     }
 
@@ -128,9 +165,7 @@ final class BridgeApp {
             if let reply { toLogic(reply, "Mackie-antwoord: \(MIDIDescribe.mackie(reply))") }
             return
         }
-        if m.count == 3, m[0] == 0xE0 {
-            fader1.fromLogic(pitchBend: Int(m[1]) | (Int(m[2]) << 7))
-        }
+        router.fromLogic(m)
     }
 
     private func toLogic(_ m: [UInt8], _ why: String) {
@@ -152,10 +187,12 @@ final class BridgeApp {
         return h.count < 12 ? h.padding(toLength: 12, withPad: " ", startingAt: 0) : h
     }
 
+    /// Slaat op. De eerste keer per sessie wordt de vorige versie als backup bewaard.
     private func saveSettings(_ message: String) {
         do {
-            try settings.save()
-            log.line("\(message). Opgeslagen in \(BridgeSettings.file.path) (vorige versie: \(BridgeSettings.backup.lastPathComponent))")
+            try settings.save(makeBackup: !savedThisRun)
+            savedThisRun = true
+            log.line("\(message). Opgeslagen.")
         } catch {
             log.line("\(message), maar OPSLAAN MISLUKT: \(error.localizedDescription)")
         }
@@ -164,37 +201,60 @@ final class BridgeApp {
     // MARK: Commando's van het toetsenbord
 
     func command(_ raw: String) {
-        let parts = raw.trimmingCharacters(in: .whitespaces).lowercased().split(separator: " ")
-        guard let cmd = parts.first else { return }
+        let words = raw.trimmingCharacters(in: .whitespaces).lowercased().split(separator: " ").map(String.init)
+        guard let cmd = words.first else { return }
         switch cmd {
         case "learn":
-            learning = true
-            log.line("LEARN: beweeg nu fader 1 op de BCF2000")
+            if words.count == 1 {
+                log.line("LEARN: alles leren. Bedien elk element als erom gevraagd wordt.")
+                learner.start(LearnTarget.learnAllOrder)
+            } else if let t = LearnTarget.parse(Array(words.dropFirst())) {
+                learner.start([t])
+            } else {
+                log.line("Onbekend leerdoel: \(raw). Voorbeelden: learn fader 3, learn encoder 2, learn top 1, learn bankleft, learn play")
+            }
+        case "skip":
+            learner.skip()
+        case "stop" where learner.isActive:
+            learner.stop()
+        case "row1", "row2":
+            guard words.count > 1, let f = ButtonFunction(rawValue: words[1]) else {
+                log.line("Gebruik: \(cmd) mute   (mute, solo, select of rec)")
+                return
+            }
+            if cmd == "row1" { settings.topRowFunction = f } else { settings.bottomRowFunction = f }
+            router.update(settings)
+            saveSettings("\(cmd == "row1" ? "Bovenste" : "Onderste") knoprij is nu \(f.label)")
+        case "mapping":
+            printMapping()
         case "status":
             log.line("STATUS: BCF in = \(io.bcfIn?.name ?? "-"), BCF uit = \(io.bcfOut?.name ?? "-"), Mackie online = \(handshake.online ? "ja" : "nee")")
-            log.line("STATUS: fader 1 = CC \(settings.fader1.cc) kanaal \(settings.fader1.channel), aangeraakt = \(fader1.touched ? "ja" : "nee"), stand = \(fader1.bcfPosition.map(String.init) ?? "-"), verborgen meter/display-berichten = \(hiddenCount)")
+            let touched = router.faders.filter { $0.touched }.map { String($0.index + 1) }
+            log.line("STATUS: faders aangeraakt = \(touched.isEmpty ? "geen" : touched.joined(separator: ",")), standen = \(router.faders.map { $0.bcfPosition.map(String.init) ?? "-" }.joined(separator: " ")), verborgen meter/display-berichten = \(hiddenCount)")
         case "ports":
             printPorts()
         case "logall":
             options.logAll.toggle()
             log.line("Meters en display-berichten loggen: \(options.logAll ? "aan" : "uit")")
         case "release":
-            if parts.count > 1, let ms = Int(parts[1]), (50...3000).contains(ms) {
+            if words.count > 1, let ms = Int(words[1]), (50...3000).contains(ms) {
                 settings.touchReleaseMs = ms
-                fader1.releaseMs = ms
+                router.update(settings)
                 saveSettings("Touch loslaten na \(ms) ms")
             } else {
                 log.line("Gebruik: release 400   (tussen 50 en 3000 ms)")
             }
+        case "help":
+            printHelp()
         case "quit", "exit", "q":
             shutdown()
         default:
-            log.line("Onbekend commando: \(raw)")
+            log.line("Onbekend commando: \(raw)  (typ help)")
         }
     }
 
     func shutdown() {
-        fader1.forceRelease()
+        router.releaseAll()
         log.line("Afsluiten")
         io.stop()
         exit(0)
