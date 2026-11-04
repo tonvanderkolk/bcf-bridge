@@ -1,4 +1,5 @@
 import BridgeCore
+import BridgeEngine
 import Foundation
 
 /// Controleert de vertaallogica zonder hardware. Start met: bcf-bridge selftest

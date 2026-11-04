@@ -1,4 +1,5 @@
 import BridgeCore
+import BridgeEngine
 import Foundation
 
 let args = Array(CommandLine.arguments.dropFirst())
@@ -9,10 +10,10 @@ if args.first == "selftest" {
 
 if args.contains("--help") || args.contains("-h") {
     print("""
-    BCF Bridge \(appVersion)
+    BCF Bridge \(bridgeVersion)
 
     Gebruik:
-      bcf-bridge                 start de bridge
+      bcf-bridge                 start de bridge in Terminal
       bcf-bridge --list          toon alle MIDI-poorten en stop
       bcf-bridge selftest        test de vertaallogica zonder hardware
 
@@ -20,11 +21,13 @@ if args.contains("--help") || args.contains("-h") {
       --in  "naam"     deel van de naam van de BCF2000-ingang  (standaard: BCF2000)
       --out "naam"     deel van de naam van de BCF2000-uitgang (standaard: BCF2000)
       --log-all        ook meters, timecode en LCD-tekst loggen
+
+    Gebruik de bridge in Terminal of de menubalk-app, niet allebei tegelijk.
     """)
     exit(0)
 }
 
-var options = Options()
+var options = EngineOptions()
 var i = 0
 while i < args.count {
     switch args[i] {
@@ -44,26 +47,33 @@ while i < args.count {
     i += 1
 }
 
-let app = BridgeApp(options: options)
-app.queue.sync {
-    do {
-        try app.start()
-    } catch {
-        print("Starten mislukt: \(error.localizedDescription)")
-        exit(1)
-    }
+let engine = BridgeEngine(options: options)
+engine.onQuitRequested = {
+    engine.shutdown()
+    exit(0)
 }
+
+do {
+    try engine.start()
+} catch {
+    print("Starten mislukt: \(error.localizedDescription)")
+    exit(1)
+}
+engine.command("help")
 
 // Ctrl-C netjes afhandelen (touch loslaten richting Logic)
 signal(SIGINT, SIG_IGN)
-let sigint = DispatchSource.makeSignalSource(signal: SIGINT, queue: app.queue)
-sigint.setEventHandler { app.shutdown() }
+let sigint = DispatchSource.makeSignalSource(signal: SIGINT, queue: engine.queue)
+sigint.setEventHandler {
+    engine.shutdown()
+    exit(0)
+}
 sigint.resume()
 
 // Toetsenbordcommando's
 Thread.detachNewThread {
     while let line = readLine() {
-        app.queue.async { app.command(line) }
+        engine.command(line)
     }
 }
 

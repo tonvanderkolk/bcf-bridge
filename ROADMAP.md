@@ -18,12 +18,16 @@
 - [x] Test met Ton in Logic: faders, encoders, mute, solo, bank en kanaal werken (4 november 2026)
 
 ## 0.3 Menubalk-app
-- [ ] SwiftUI menubalk-app met status BCF2000 en Logic
-- [ ] Ingebouwde log met kopieerknop
-- [ ] Mapping importeren en exporteren
-- [ ] Automatisch opslaan met zichtbare bevestiging
-- [ ] Starten bij inloggen
+- [x] SwiftUI menubalk-app met status BCF2000 en Logic
+- [x] Ingebouwde log met kopieerknop
+- [x] Mapping importeren en exporteren
+- [x] Automatisch opslaan met zichtbare bevestiging
+- [x] Starten bij inloggen
+- [x] Beveiliging tegen twee bridges tegelijk
+- [ ] Test met Ton: app installeren, starten bij inloggen, werken met Logic
 
 ## Later
+- [ ] Transport (play, stop, record) op knoppen, bijvoorbeeld als derde functie voor een knoprij
+- [ ] Mapping bekijken en per element opnieuw leren vanuit de app
 - [ ] Onderzoeken of een eigen BCF2000-preset faders als 14-bit Pitch Bend kan sturen
 - [ ] Vrij te kiezen in- en uitgangspoort in de app (5-pins MIDI via interface)

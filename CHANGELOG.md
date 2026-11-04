@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 - 2026-11-04
+- Menubalk-app "BCF Bridge" (SwiftUI): status van BCF2000 en Logic, knoprijfuncties, fader-loslaattijd, alles leren, exporteren, importeren, standaard herstellen, starten bij inloggen
+- Logvenster met kopieerknop en knop naar het logbestand
+- Bridge-motor verplaatst naar een gedeelde bibliotheek (BridgeEngine), gebruikt door app en command line
+- Bridge weigert te starten als er al een bridge draait
+- Logbestanden ouder dan 14 dagen worden opgeruimd, een logbestand groeit niet verder dan 50 MB
+- Script `scripts/build-app.sh` bouwt en installeert de app
+
 ## 0.2.1 - 2026-11-04
 - Standaardmapping aangevuld met de vier knoppen rechtsonder (CC 89-92: bank links/rechts, kanaal links/rechts), bevestigd met de echte BCF2000
 - Commando `reset` zet de mapping terug naar de standaard, vorige versie blijft bewaard

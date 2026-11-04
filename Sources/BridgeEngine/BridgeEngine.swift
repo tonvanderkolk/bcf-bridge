@@ -1,44 +1,74 @@
 import BridgeCore
 import Foundation
 
-let appVersion = "0.2.1"
+public let bridgeVersion = "0.3.0"
 
-struct Options {
-    var inMatch = "BCF2000"
-    var outMatch = "BCF2000"
-    var logAll = false
+public struct EngineOptions {
+    public var inMatch = "BCF2000"
+    public var outMatch = "BCF2000"
+    public var logAll = false
+    /// Logregels ook naar stdout (command line)
+    public var echoLog = true
+    public init() {}
 }
 
-/// Koppelt alles aan elkaar. Alle code hier draait op `queue`.
-final class BridgeApp {
-    let queue = DispatchQueue(label: "bcf-bridge")
-    let log = Logger()
+/// Momentopname voor de app: wat is verbonden, wat wordt er geleerd, welke instellingen gelden.
+public struct EngineStatus {
+    public var bcfIn: String?
+    public var bcfOut: String?
+    public var logicOnline = false
+    public var learnPrompt: String?
+    public var settings = BridgeSettings()
+    public var lastSaved: Date?
+    public var lastSaveMessage: String?
+    public var error: String?
+    public init() {}
+}
+
+/// De bridge zelf. Alle interne code draait op `queue`; de publieke methodes zijn veilig vanaf elke thread.
+public final class BridgeEngine {
+    public let queue = DispatchQueue(label: "bcf-bridge")
+    public let log = Logger()
     let io: MIDIIO
     let clock: QueueClock
     let handshake = MackieHandshake()
     var settings = BridgeSettings.load()
-    var options: Options
+    var options: EngineOptions
     let router: Router
     let learner: Learner
 
+    /// Wordt aangeroepen op `queue` bij elke statuswijziging
+    public var onStatus: ((EngineStatus) -> Void)?
+    /// Wordt aangeroepen als iemand "quit" typt
+    public var onQuitRequested: (() -> Void)?
+
+    private var status = EngineStatus()
     private var bcfParser = MIDIParser()
     private var logicParser = MIDIParser()
     private var hiddenCount = 0
     private var savedThisRun = false
+    private var firstConnect = true
+    private var running = false
 
-    init(options: Options) {
+    public init(options: EngineOptions = EngineOptions()) {
         self.options = options
+        log.echo = options.echoLog
+        queue.setSpecific(key: Self.queueKey, value: true)
         io = MIDIIO(queue: queue)
         clock = QueueClock(queue: queue)
         router = Router(settings: settings, clock: clock)
         learner = Learner(clock: clock)
+        status.settings = settings
 
         router.sendToLogic = { [unowned self] bytes, why in self.toLogic(bytes, why) }
         router.sendToBCF = { [unowned self] bytes, why in self.toBCF(bytes, why) }
         router.note = { [unowned self] text in self.log.line("   ..  \(text)") }
 
         learner.prompt = { [unowned self] target in
-            self.log.line("LEARN: \(target.label(self.settings)): \(target.instruction)   (typ skip om over te slaan, stop om te stoppen)")
+            let text = "\(target.label(self.settings)): \(target.instruction)"
+            self.log.line("LEARN: \(text)   (typ skip om over te slaan, stop om te stoppen)")
+            self.status.learnPrompt = text
+            self.emit()
         }
         learner.learned = { [unowned self] target, mapping, detail in
             let cleared = self.settings.assign(mapping, to: target)
@@ -50,11 +80,31 @@ final class BridgeApp {
             }
             self.saveSettings(msg)
         }
-        learner.finished = { [unowned self] text in self.log.line("LEARN: \(text)") }
+        learner.finished = { [unowned self] text in
+            self.log.line("LEARN: \(text)")
+            self.status.learnPrompt = nil
+            self.emit()
+        }
     }
 
-    func start() throws {
-        log.plain("BCF Bridge \(appVersion)  (command line)")
+    // MARK: Starten en stoppen
+
+    /// Start de bridge. Niet aanroepen vanaf `queue`.
+    public func start() throws {
+        var failure: Error?
+        queue.sync {
+            do { try self.startOnQueue() } catch { failure = error }
+        }
+        if let failure {
+            status.error = failure.localizedDescription
+            log.line("STARTEN MISLUKT: \(failure.localizedDescription)")
+            emit()
+            throw failure
+        }
+    }
+
+    private func startOnQueue() throws {
+        log.plain("BCF Bridge \(bridgeVersion)")
         log.plain("Logbestand: \(log.fileURL.path)")
         log.plain("Instellingen: \(BridgeSettings.file.path)")
         log.plain("")
@@ -73,13 +123,87 @@ final class BridgeApp {
             self.reconnect()
         }
         try io.start()
+        running = true
         log.line("Virtuele poort \"\(MIDIIO.virtualName)\" aangemaakt (in en uit)")
         reconnect()
         scheduleRetry()
-        log.plain("")
-        printHelp()
-        log.plain("")
+        emit()
     }
+
+    /// Faders loslaten richting Logic en de virtuele poort opruimen.
+    public func shutdown() {
+        let work = {
+            guard self.running else { return }
+            self.running = false
+            self.router.releaseAll()
+            self.log.line("Afsluiten")
+            self.io.stop()
+        }
+        if DispatchQueue.getSpecific(key: Self.queueKey) != nil { work() } else { queue.sync(execute: work) }
+    }
+
+    private static let queueKey = DispatchSpecificKey<Bool>()
+
+    // MARK: Publieke bediening (veilig vanaf elke thread)
+
+    public func command(_ raw: String) { queue.async { self.runCommand(raw) } }
+    public func learnAll() { command("learn") }
+    public func learnSkip() { command("skip") }
+    public func learnStop() { queue.async { self.learner.stop() } }
+    public func resetMapping() { command("reset") }
+
+    public func setRowFunction(top: Bool, _ f: ButtonFunction) {
+        command("\(top ? "row1" : "row2") \(f.rawValue)")
+    }
+
+    public func setReleaseMs(_ ms: Int) { command("release \(ms)") }
+
+    /// Huidige mapping als JSON-bestand wegschrijven.
+    public func exportMapping(to url: URL, completion: @escaping (Error?) -> Void) {
+        queue.async {
+            do {
+                let enc = JSONEncoder()
+                enc.outputFormatting = [.prettyPrinted, .sortedKeys]
+                try enc.encode(self.settings).write(to: url, options: .atomic)
+                self.log.line("Mapping geëxporteerd naar \(url.path)")
+                completion(nil)
+            } catch {
+                self.log.line("Exporteren mislukt: \(error.localizedDescription)")
+                completion(error)
+            }
+        }
+    }
+
+    /// Mapping inlezen uit een JSON-bestand. De huidige versie wordt eerst als backup bewaard.
+    public func importMapping(from url: URL, completion: @escaping (Error?) -> Void) {
+        queue.async {
+            do {
+                let data = try Data(contentsOf: url)
+                let s = try JSONDecoder().decode(BridgeSettings.self, from: data)
+                self.learner.stop()
+                self.settings = s
+                self.router.update(s)
+                self.savedThisRun = false // altijd een backup van de huidige versie maken
+                self.saveSettings("Mapping geïmporteerd uit \(url.lastPathComponent) (vorige versie bewaard als \(BridgeSettings.backup.lastPathComponent))")
+                completion(nil)
+            } catch {
+                self.log.line("Importeren mislukt: \(error.localizedDescription)")
+                completion(error)
+            }
+        }
+    }
+
+    // MARK: Status
+
+    private func emit() {
+        status.bcfIn = io.bcfIn?.name
+        status.bcfOut = io.bcfOut?.name
+        status.logicOnline = handshake.online
+        status.settings = settings
+        onStatus?(status)
+    }
+
+    // MARK: Overzichten
 
     func printHelp() {
         log.plain("""
@@ -116,7 +240,7 @@ final class BridgeApp {
         log.plain("  Touch loslaten na \(settings.touchReleaseMs) ms")
     }
 
-    private var firstConnect = true
+    // MARK: Verbinding met de BCF2000
 
     private func reconnect() {
         let hadIn = io.bcfIn?.name, hadOut = io.bcfOut?.name
@@ -131,12 +255,13 @@ final class BridgeApp {
             log.line(io.bcfOut.map { "BCF2000 uitgang verbonden: \($0.name)" }
                      ?? "BCF2000 uitgang NIET gevonden (zoek op \"\(options.outMatch)\")")
         }
+        emit()
     }
 
     /// Vangnet naast de setup-melding: elke 3 seconden kijken of de BCF2000 terug is.
     private func scheduleRetry() {
         queue.asyncAfter(deadline: .now() + 3) { [weak self] in
-            guard let self else { return }
+            guard let self, self.running else { return }
             if self.io.bcfIn == nil || self.io.bcfOut == nil { self.reconnect() }
             self.scheduleRetry()
         }
@@ -162,9 +287,11 @@ final class BridgeApp {
         }
 
         if m.first == 0xF0 {
+            let wasOnline = handshake.online
             let (reply, why) = handshake.handle(m)
             if let why { log.line("   ..  \(why)") }
             if let reply { toLogic(reply, "Mackie-antwoord: \(MIDIDescribe.mackie(reply))") }
+            if wasOnline != handshake.online { emit() }
             return
         }
         router.fromLogic(m)
@@ -195,14 +322,18 @@ final class BridgeApp {
             try settings.save(makeBackup: !savedThisRun)
             savedThisRun = true
             log.line("\(message). Opgeslagen.")
+            status.lastSaved = Date()
+            status.lastSaveMessage = message
         } catch {
             log.line("\(message), maar OPSLAAN MISLUKT: \(error.localizedDescription)")
+            status.error = "Opslaan mislukt: \(error.localizedDescription)"
         }
+        emit()
     }
 
-    // MARK: Commando's van het toetsenbord
+    // MARK: Tekstcommando's
 
-    func command(_ raw: String) {
+    private func runCommand(_ raw: String) {
         let words = raw.trimmingCharacters(in: .whitespaces).lowercased().split(separator: " ").map(String.init)
         guard let cmd = words.first else { return }
         switch cmd {
@@ -257,16 +388,9 @@ final class BridgeApp {
         case "help":
             printHelp()
         case "quit", "exit", "q":
-            shutdown()
+            onQuitRequested?()
         default:
             log.line("Onbekend commando: \(raw)  (typ help)")
         }
-    }
-
-    func shutdown() {
-        router.releaseAll()
-        log.line("Afsluiten")
-        io.stop()
-        exit(0)
     }
 }

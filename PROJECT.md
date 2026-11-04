@@ -1,10 +1,22 @@
 # BCF Bridge
 
-Versie: 0.2.1
+Versie: 0.3.0
 
 Kleine macOS-tool die een Behringer BCF2000 laat werken als Mackie Control-oppervlak in Logic Pro. De BCF2000 draait in gewone CC-modus (U-1) en de bridge vertaalt in beide richtingen tussen die CC-berichten en het Mackie Control-protocol. Logic praat alleen met de virtuele MIDI-poort "BCF Bridge".
 
 ## Status
+
+Mijlpaal 3: menubalk-app "BCF Bridge" met dezelfde bridge als de command line-tool. Nog te testen door Ton.
+
+- Menubalk-icoon met status BCF2000 en Logic (driehoek = BCF2000 niet gevonden of startfout)
+- Functie van beide knoprijen kiezen, fader-loslaattijd instellen, zichtbare bevestiging na opslaan
+- Alles leren met overslaan en stoppen
+- Mapping exporteren, importeren en terugzetten naar de standaard
+- Logvenster met kopieerknop en knop naar het logbestand
+- Starten bij inloggen
+- Weigert te starten als er al een bridge draait (Terminal of app), zodat Logic geen dubbele poort ziet
+
+Eerder:
 
 Mijlpaal 2: command line-tool die alle kanalen vertaalt. Getest in Logic op 4 november 2026: faders, encoders, mute, solo, bank en kanaal werken. Transport heeft nog geen knop.
 
@@ -27,15 +39,18 @@ Mijlpaal 2: command line-tool die alle kanalen vertaalt. Getest in Logic op 4 no
 ## Structuur
 
 - `Sources/BridgeCore/` vertaallogica zonder hardware-afhankelijkheid (parser, Mackie-handshake, faders, encoders, knoppen, router, learn, instellingen)
-- `Sources/bcf-bridge/` command line-tool (CoreMIDI, log, toetsenbordcommando's, selftest)
+- `Sources/BridgeEngine/` CoreMIDI, logbestand en de motor die alles verbindt (gedeeld door app en command line)
+- `Sources/BCFBridgeApp/` SwiftUI menubalk-app
+- `Sources/bcf-bridge/` command line-tool en selftest
+- `scripts/build-app.sh` bouwt `build/BCF Bridge.app`, met `install` ook naar /Applications
 - `TESTEN.md` stap-voor-stap testinstructies voor Logic
 
 ## Bouwen en draaien
 
 ```bash
-swift build -c release
-.build/release/bcf-bridge selftest
-.build/release/bcf-bridge
+scripts/build-app.sh install          # menubalk-app bouwen, installeren en starten
+swift build && .build/debug/bcf-bridge selftest
+.build/release/bcf-bridge             # command line-versie (niet tegelijk met de app)
 ```
 
 ## Ontwerpkeuzes

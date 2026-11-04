@@ -1,5 +1,37 @@
 # Testinstructies
 
+## Testronde 3: menubalk-app (versie 0.3.0)
+
+### 1. Terminal-bridge stoppen
+
+De app en de Terminal-versie kunnen niet tegelijk draaien. Typ in het Terminal-venster waar de bridge draait `quit` en Enter.
+
+### 2. App bouwen en installeren
+
+Plak in Terminal (één regel, Enter):
+
+```bash
+cd "/Users/tonvanderkolk/Documents/TvdK Apps/BCF Bridge" && scripts/build-app.sh install
+```
+
+Na ongeveer een minuut staat er `Geïnstalleerd in /Applications en gestart`. Rechtsboven in de menubalk verschijnt een icoon met schuifjes.
+
+### 3. Controleren
+
+1. Klik op het icoon. Bij **BCF2000** en **Logic** moet een groen bolletje staan (bij Logic pas als Logic open is).
+2. Test faders, encoders, mute, solo en bank zoals in ronde 2.
+3. Zet **Starten bij inloggen** aan.
+4. Klik **Log tonen**: je ziet de berichten voorbij komen.
+
+### 4. Na herstart van de Mac
+
+Log opnieuw in, start Logic en kijk of alles meteen werkt zonder Terminal.
+
+Kijk in **Control Surfaces > Setup** of er nog steeds precies één Mackie Control staat (geen BCF2000, geen Mackie Control #2).
+
+---
+
+
 ## Eenmalige voorbereiding in Logic
 
 1. Ga naar **Logic Pro > Control Surfaces > Setup...**

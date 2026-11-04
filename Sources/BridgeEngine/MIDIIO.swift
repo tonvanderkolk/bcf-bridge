@@ -1,16 +1,16 @@
 import CoreMIDI
 import Foundation
 
-struct Endpoint {
-    let ref: MIDIEndpointRef
-    let name: String
-    let uniqueID: Int32
+public struct Endpoint {
+    public let ref: MIDIEndpointRef
+    public let name: String
+    public let uniqueID: Int32
 }
 
 /// Dunne laag over CoreMIDI: virtuele poort "BCF Bridge" plus de echte BCF2000-poorten.
 /// Alle callbacks komen terug op `queue`.
-final class MIDIIO {
-    static let virtualName = "BCF Bridge"
+public final class MIDIIO {
+    public static let virtualName = "BCF Bridge"
 
     let queue: DispatchQueue
     private var client = MIDIClientRef()
@@ -29,6 +29,11 @@ final class MIDIIO {
     init(queue: DispatchQueue) { self.queue = queue }
 
     func start() throws {
+        // Twee bridges tegelijk geeft twee poorten met dezelfde naam en verwarring in Logic
+        if Self.sources().contains(where: { $0.name == Self.virtualName }) {
+            throw NSError(domain: "BCFBridge", code: 1, userInfo: [NSLocalizedDescriptionKey:
+                "Er draait al een BCF Bridge (in Terminal of als app). Stop die eerst."])
+        }
         try check(MIDIClientCreateWithBlock("BCF Bridge" as CFString, &client) { [weak self] notif in
             guard let self else { return }
             if notif.pointee.messageID == .msgSetupChanged {
@@ -82,14 +87,14 @@ final class MIDIIO {
         return v
     }
 
-    static func sources() -> [Endpoint] {
+    public static func sources() -> [Endpoint] {
         (0..<MIDIGetNumberOfSources()).map { i in
             let e = MIDIGetSource(i)
             return Endpoint(ref: e, name: name(of: e), uniqueID: uid(of: e))
         }
     }
 
-    static func destinations() -> [Endpoint] {
+    public static func destinations() -> [Endpoint] {
         (0..<MIDIGetNumberOfDestinations()).map { i in
             let e = MIDIGetDestination(i)
             return Endpoint(ref: e, name: name(of: e), uniqueID: uid(of: e))
