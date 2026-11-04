@@ -6,6 +6,11 @@ BCF Bridge is a small macOS menu bar app. The BCF2000 runs in its plain CC mode 
 
 <img src="docs/icon.png" width="128" alt="BCF Bridge icon">
 
+<p>
+  <img src="docs/screenshots/menu.png" width="320" alt="BCF Bridge menu">
+  <img src="docs/screenshots/mapping.png" width="420" alt="Mapping window with Learn buttons">
+</p>
+
 ## Why
 
 The BCF2000 has a built-in Logic Control emulation, but in recent versions of Logic Pro it tends to misbehave: faders jump back while you move them, mute and pan react strangely, and Logic keeps adding a "BCF2000" control surface on every launch. BCF Bridge works around all of that without touching the BCF2000 firmware:
@@ -64,7 +69,7 @@ Different preset? Use **Learn all** in the menu, or **Show mapping** to relearn 
 
 - **Faders jump back:** increase **Release fader after** in the menu, for example to 600 ms.
 - **Logic shows extra BCF2000 or "Mackie Control #2" surfaces:** delete them in Control Surfaces > Setup. Keep "Keep Logic from adding the BCF2000" turned on in the menu, and start BCF Bridge before Logic.
-- **Something else:** click **Show log** and **Copy log** and include it in an issue. Log files are in `~/Library/Logs/BCF Bridge` and are kept for 14 days.
+- **Something else:** click **Show log** (it shows every MIDI message in both directions, see [screenshot](docs/screenshots/log.png)) and **Copy log** and include it in an issue. Log files are in `~/Library/Logs/BCF Bridge` and are kept for 14 days.
 - **Undo the model rename:** turn off "Keep Logic from adding the BCF2000" in the menu. The model name goes back to "BCF2000".
 
 ## Build from source
