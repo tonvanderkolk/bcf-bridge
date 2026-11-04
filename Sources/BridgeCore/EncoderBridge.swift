@@ -34,7 +34,7 @@ public final class EncoderBridge {
         case .absolute:
             guard let last = lastAbs else {
                 lastAbs = value
-                note("Encoder \(index + 1): eerste stand \(value) vastgelegd als beginpunt")
+                note("Encoder \(index + 1): first value \(value) stored as starting point")
                 return
             }
             delta = value - last
@@ -49,7 +49,7 @@ public final class EncoderBridge {
         let steps = min(abs(delta), 15)
         let byte = UInt8(delta > 0 ? steps : 0x40 | steps)
         sendToLogic([0xB0, UInt8(0x10 + index), byte],
-                    "V-Pot \(index + 1) \(delta > 0 ? "rechtsom" : "linksom") \(steps) stap(pen)")
+                    "V-Pot \(index + 1) \(delta > 0 ? "right" : "left") \(steps) step(s)")
     }
 
     private func markActive() {
@@ -61,7 +61,7 @@ public final class EncoderBridge {
             self.active = false
             if let p = self.pendingRing {
                 self.pendingRing = nil
-                self.setEncoder(p, reason: "na draaien, stand van Logic")
+                self.setEncoder(p, reason: "after turning, Logic position")
             }
         }
     }
@@ -78,12 +78,12 @@ public final class EncoderBridge {
             pendingRing = target
             return
         }
-        setEncoder(target, reason: "LED-krans van Logic (positie \(pos) van 11)")
+        setEncoder(target, reason: "Logic LED ring (position \(pos) of 11)")
     }
 
     private func setEncoder(_ target: Int, reason: String) {
         guard let m = mapping, target != lastAbs else { return }
         lastAbs = target
-        sendToBCF([0xB0 | UInt8(m.channel - 1), UInt8(m.cc), UInt8(target)], "Encoder \(index + 1) naar \(target) (\(reason))")
+        sendToBCF([0xB0 | UInt8(m.channel - 1), UInt8(m.cc), UInt8(target)], "Encoder \(index + 1) to \(target) (\(reason))")
     }
 }

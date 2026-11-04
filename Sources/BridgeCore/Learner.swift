@@ -38,14 +38,14 @@ public final class Learner {
         queue = []
         capture = nil
         generation += 1
-        finished("Leren gestopt")
+        finished(tr("Learning stopped", "Leren gestopt"))
     }
 
     private func next() {
         capture = nil
         waiting = false
         guard !queue.isEmpty else {
-            if current != nil { current = nil; finished("Leren klaar") }
+            if current != nil { current = nil; finished(tr("Learning finished", "Leren klaar")) }
             return
         }
         current = queue.removeFirst()
@@ -96,7 +96,7 @@ public final class Learner {
         case .encoder:
             let mode = Self.detectEncoderMode(c.values)
             mapping.encoderMode = mode
-            detail = mode == .absolute ? "absoluut" : (mode == .relativeOffset64 ? "relatief (rond 64)" : "relatief (1/127)")
+            detail = mode.label
         case .button:
             let mode: ButtonMode = c.values.count >= 2 ? .momentary : .toggle
             mapping.buttonMode = mode

@@ -79,7 +79,7 @@ final class AppModel: ObservableObject {
 
     private func apply(_ st: EngineStatus) {
         if let saved = st.lastSaved, saved != status.lastSaved {
-            savedMessage = st.lastSaveMessage ?? "Opgeslagen"
+            savedMessage = st.lastSaveMessage ?? tr("Saved", "Opgeslagen")
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
                 guard let self, self.status.lastSaved == saved else { return }
                 self.savedMessage = nil
@@ -103,38 +103,38 @@ final class AppModel: ObservableObject {
 
     func confirmReset() {
         let alert = NSAlert()
-        alert.messageText = "Mapping terugzetten naar de standaard?"
-        alert.informativeText = "De huidige mapping wordt bewaard als mapping.vorige.json."
-        alert.addButton(withTitle: "Terugzetten")
-        alert.addButton(withTitle: "Annuleren")
+        alert.messageText = tr("Reset the mapping to the default?", "Mapping terugzetten naar de standaard?")
+        alert.informativeText = tr("The current mapping is kept as \(BridgeSettings.backup.lastPathComponent).", "De huidige mapping wordt bewaard als \(BridgeSettings.backup.lastPathComponent).")
+        alert.addButton(withTitle: tr("Reset", "Terugzetten"))
+        alert.addButton(withTitle: tr("Cancel", "Annuleren"))
         NSApp.activate(ignoringOtherApps: true)
         if alert.runModal() == .alertFirstButtonReturn { engine.resetMapping() }
     }
 
     func exportMapping() {
         let panel = NSSavePanel()
-        panel.title = "Mapping exporteren"
+        panel.title = tr("Export mapping", "Mapping exporteren")
         panel.nameFieldStringValue = "BCF Bridge mapping.json"
         panel.allowedContentTypes = [.json]
         NSApp.activate(ignoringOtherApps: true)
         guard panel.runModal() == .OK, let url = panel.url else { return }
         engine.exportMapping(to: url) { error in
             DispatchQueue.main.async {
-                if let error { Self.showError("Exporteren mislukt", error) }
+                if let error { Self.showError(tr("Export failed", "Exporteren mislukt"), error) }
             }
         }
     }
 
     func importMapping() {
         let panel = NSOpenPanel()
-        panel.title = "Mapping importeren"
+        panel.title = tr("Import mapping", "Mapping importeren")
         panel.allowedContentTypes = [.json]
         panel.allowsMultipleSelection = false
         NSApp.activate(ignoringOtherApps: true)
         guard panel.runModal() == .OK, let url = panel.url else { return }
         engine.importMapping(from: url) { error in
             DispatchQueue.main.async {
-                if let error { Self.showError("Importeren mislukt", error) }
+                if let error { Self.showError(tr("Import failed", "Importeren mislukt"), error) }
             }
         }
     }
@@ -143,7 +143,7 @@ final class AppModel: ObservableObject {
         do {
             if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
         } catch {
-            Self.showError("Starten bij inloggen lukt niet", error)
+            Self.showError(tr("Could not set launch at login", "Starten bij inloggen lukt niet"), error)
         }
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }

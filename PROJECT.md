@@ -1,6 +1,6 @@
 # BCF Bridge
 
-Versie: 0.4.0
+Versie: 0.5.0
 
 Kleine macOS-tool die een Behringer BCF2000 laat werken als Mackie Control-oppervlak in Logic Pro. De BCF2000 draait in gewone CC-modus (U-1) en de bridge vertaalt in beide richtingen tussen die CC-berichten en het Mackie Control-protocol. Logic praat alleen met de virtuele MIDI-poort "BCF Bridge".
 
@@ -8,7 +8,9 @@ Kleine macOS-tool die een Behringer BCF2000 laat werken als Mackie Control-opper
 
 Mijlpaal 3: menubalk-app "BCF Bridge" met dezelfde bridge als de command line-tool. Getest door Ton op 4 november 2026: start bij inloggen en werkt met Logic zonder Terminal.
 
-Logic voegde na elke start zelf een BCF2000-control surface toe. De bridge zet daarom bij het starten de modelnaam van de BCF2000 in CoreMIDI op "BCF2000 Bridge". De BCF2000 zelf wordt niet aangepast. Terugzetten kan met `swift scripts/set-bcf-model.swift BCF2000`.
+Logic voegde na elke start zelf een BCF2000-control surface toe. De bridge zet daarom bij het starten de modelnaam van de BCF2000 in CoreMIDI op "BCF2000 Bridge". De BCF2000 zelf wordt niet aangepast. Dit is uit te zetten in het menu; dan gaat de naam terug naar "BCF2000".
+
+Mijlpaal 5: voorbereiding om openbaar te maken. App tweetalig, Engelse README (README.md), MIT-licentie. De repository is nog privé.
 
 - Menubalk-icoon met status BCF2000 en Logic (driehoek = BCF2000 niet gevonden of startfout)
 - Functie van beide knoprijen kiezen, fader-loslaattijd instellen, zichtbare bevestiging na opslaan
@@ -46,7 +48,7 @@ Mijlpaal 2: command line-tool die alle kanalen vertaalt. Getest in Logic op 4 no
 - `Sources/BCFBridgeApp/` SwiftUI menubalk-app
 - `Sources/bcf-bridge/` command line-tool en selftest
 - `scripts/build-app.sh` bouwt `build/BCF Bridge.app`, met `install` ook naar /Applications
-- `TESTEN.md` stap-voor-stap testinstructies voor Logic
+- `docs/dev/TESTEN.md` stap-voor-stap testinstructies voor Logic
 
 ## Bouwen en draaien
 

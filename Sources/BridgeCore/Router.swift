@@ -62,7 +62,7 @@ public final class Router {
         for i in 0..<8 {
             addButton("\(settings.topRowFunction.label) \(i + 1)", settings.topRowFunction.noteBase + UInt8(i), settings.topRow[i], led: true)
             addButton("\(settings.bottomRowFunction.label) \(i + 1)", settings.bottomRowFunction.noteBase + UInt8(i), settings.bottomRow[i], led: true)
-            addButton("V-Pot \(i + 1) indrukken", 0x20 + UInt8(i), settings.encoderPush[i], led: false)
+            addButton("V-Pot \(i + 1) push", 0x20 + UInt8(i), settings.encoderPush[i], led: false)
         }
         for n in NavButton.allCases {
             addButton(n.label, n.note, settings.nav[n.rawValue], led: false)

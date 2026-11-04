@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0 - 2026-11-04
+Voorbereiding om het project openbaar te maken.
+- App tweetalig: Engels standaard, Nederlands als de Mac in het Nederlands staat (of met BCF_BRIDGE_LANG=nl)
+- Technische MIDI-regels in de log, de command line-hulp en de selftest zijn Engelstalig
+- Modelnaam-aanpassing voor Logic is nu een instelling (standaard aan), met schakelaar in het menu en commando `hidemodel on|off`; uitzetten zet de naam terug naar "BCF2000"
+- Backup van de mapping heet nu mapping.backup.json
+- Engelse README, MIT-licentie, icoon voor GitHub
+- HANDOVER.md en TESTEN.md verplaatst naar docs/dev
+- `scripts/build-app.sh release` maakt een zip voor GitHub Releases
+
 ## 0.4.0 - 2026-11-04
 - Mappingvenster in de app ("Mapping bekijken"): alle koppelingen per groep, per element opnieuw leren of wissen
 - Tekstcommando `clear <element>` wist de koppeling van één element

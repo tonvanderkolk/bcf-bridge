@@ -33,6 +33,16 @@
 - [x] Per element opnieuw leren of wissen
 - [x] Test met Ton: venster duidelijk, per element leren werkt (4 november 2026)
 
+## 0.5 Openbaar maken
+- [x] App tweetalig (Engels en Nederlands)
+- [x] Engelse README en MIT-licentie
+- [x] Modelnaam-aanpassing uitschakelbaar
+- [x] Release-zip
+- [ ] Ton controleert README en app
+- [ ] Repository op public zetten en eerste release publiceren
+- [ ] Commentaar in de code naar het Engels
+- [ ] Eventueel: Apple Developer ID en notarisatie, zodat de app zonder waarschuwing opent
+
 ## Later
 - [ ] Onderzoeken of een eigen BCF2000-preset faders als 14-bit Pitch Bend kan sturen
 - [ ] Vrij te kiezen in- en uitgangspoort in de app (5-pins MIDI via interface)

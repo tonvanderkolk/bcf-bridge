@@ -1,3 +1,4 @@
+import BridgeCore
 import SwiftUI
 
 struct LogView: View {
@@ -8,16 +9,16 @@ struct LogView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
-                Text("\(model.lines.count) regels (laatste \(3000))")
+                Text(tr("\(model.lines.count) lines (last 3000)", "\(model.lines.count) regels (laatste 3000)"))
                     .foregroundStyle(.secondary)
                 Spacer()
-                Toggle("Automatisch scrollen", isOn: $autoScroll)
-                Button(copied ? "Gekopieerd" : "Kopieer log") {
+                Toggle(tr("Auto-scroll", "Automatisch scrollen"), isOn: $autoScroll)
+                Button(copied ? tr("Copied", "Gekopieerd") : tr("Copy log", "Kopieer log")) {
                     model.copyLog()
                     copied = true
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copied = false }
                 }
-                Button("Logbestand in Finder") { model.revealLogFile() }
+                Button(tr("Show log file in Finder", "Logbestand in Finder")) { model.revealLogFile() }
             }
             .padding(10)
 

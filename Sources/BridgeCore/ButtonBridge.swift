@@ -28,25 +28,25 @@ public final class ButtonBridge {
         case .toggle:
             // Een toggle-knop stuurt per druk één bericht: altijd één complete klik naar Logic
             ledState = value
-            sendToLogic([0x90, mackieNote, 0x7F], "\(name) ingedrukt")
-            sendToLogic([0x90, mackieNote, 0x00], "\(name) losgelaten")
+            sendToLogic([0x90, mackieNote, 0x7F], "\(name) pressed")
+            sendToLogic([0x90, mackieNote, 0x00], "\(name) released")
             if !hasLEDFeedback {
-                clock.after(ms: 120) { [weak self] in self?.setLED(0, reason: "geen lampje bij deze functie") }
+                clock.after(ms: 120) { [weak self] in self?.setLED(0, reason: "no LED for this function") }
             }
         case .momentary:
-            sendToLogic([0x90, mackieNote, value > 0 ? 0x7F : 0x00], "\(name) \(value > 0 ? "ingedrukt" : "losgelaten")")
+            sendToLogic([0x90, mackieNote, value > 0 ? 0x7F : 0x00], "\(name) \(value > 0 ? "pressed" : "released")")
         }
     }
 
     /// Lampjesbericht van Logic: 127 aan, 1 knipperen, 0 uit.
     public func fromLogicLED(velocity: Int) {
-        setLED(velocity > 0 ? 127 : 0, reason: velocity == 1 ? "Logic: knipperen (BCF toont aan)" : "lampje van Logic")
+        setLED(velocity > 0 ? 127 : 0, reason: velocity == 1 ? "Logic: blink (BCF shows on)" : "Logic LED")
     }
 
     private func setLED(_ v: Int, reason: String) {
         guard v != ledState else { return }
         ledState = v
         sendToBCF([0xB0 | UInt8(mapping.channel - 1), UInt8(mapping.cc), UInt8(v)],
-                  "\(name) lampje \(v > 0 ? "aan" : "uit") (\(reason))")
+                  "\(name) LED \(v > 0 ? "on" : "off") (\(reason))")
     }
 }

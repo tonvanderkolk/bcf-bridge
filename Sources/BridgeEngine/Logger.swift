@@ -59,7 +59,7 @@ public final class Logger {
         handle?.write(d)
         bytesWritten += d.count
         if bytesWritten >= maxBytes {
-            handle?.write("[logbestand vol, verdere regels alleen in het logvenster]\n".data(using: .utf8)!)
+            handle?.write("[log file full, further lines only in the log window]\n".data(using: .utf8)!)
         }
     }
 }

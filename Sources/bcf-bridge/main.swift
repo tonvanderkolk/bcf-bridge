@@ -12,17 +12,18 @@ if args.contains("--help") || args.contains("-h") {
     print("""
     BCF Bridge \(bridgeVersion)
 
-    Gebruik:
-      bcf-bridge                 start de bridge in Terminal
-      bcf-bridge --list          toon alle MIDI-poorten en stop
-      bcf-bridge selftest        test de vertaallogica zonder hardware
+    Usage:
+      bcf-bridge                 run the bridge in Terminal
+      bcf-bridge --list          list all MIDI ports and quit
+      bcf-bridge selftest        test the translation logic without hardware
 
-    Opties:
-      --in  "naam"     deel van de naam van de BCF2000-ingang  (standaard: BCF2000)
-      --out "naam"     deel van de naam van de BCF2000-uitgang (standaard: BCF2000)
-      --log-all        ook meters, timecode en LCD-tekst loggen
+    Options:
+      --in  "name"     part of the BCF2000 input name   (default: BCF2000)
+      --out "name"     part of the BCF2000 output name  (default: BCF2000)
+      --log-all        also log meters, timecode and LCD text
 
-    Gebruik de bridge in Terminal of de menubalk-app, niet allebei tegelijk.
+    Run the bridge either in Terminal or as the menu bar app, not both at once.
+    Set BCF_BRIDGE_LANG=nl for Dutch messages.
     """)
     exit(0)
 }
@@ -35,13 +36,13 @@ while i < args.count {
     case "--out" where i + 1 < args.count: options.outMatch = args[i + 1]; i += 1
     case "--log-all": options.logAll = true
     case "--list":
-        print("MIDI-ingangen (sources):")
+        print("MIDI sources:")
         for e in MIDIIO.sources() { print("  - \(e.name)") }
-        print("MIDI-uitgangen (destinations):")
+        print("MIDI destinations:")
         for e in MIDIIO.destinations() { print("  - \(e.name)") }
         exit(0)
     default:
-        print("Onbekende optie: \(args[i])  (zie --help)")
+        print("Unknown option: \(args[i])  (see --help)")
         exit(2)
     }
     i += 1
@@ -56,7 +57,7 @@ engine.onQuitRequested = {
 do {
     try engine.start()
 } catch {
-    print("Starten mislukt: \(error.localizedDescription)")
+    print(tr("Start failed", "Starten mislukt") + ": \(error.localizedDescription)")
     exit(1)
 }
 engine.command("help")

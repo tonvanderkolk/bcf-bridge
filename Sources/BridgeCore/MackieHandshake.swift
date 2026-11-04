@@ -20,18 +20,18 @@ public final class MackieHandshake {
         switch m[5] {
         case 0x00:
             return (Self.header + [0x01] + serial + challenge + [0xF7],
-                    "Logic vraagt naar het apparaat, antwoord met host connection query")
+                    "Logic asks for the device, replying with host connection query")
         case 0x02:
             online = true
             return (Self.header + [0x03] + serial + [0xF7],
-                    "Logic bevestigt verbinding, antwoord met confirmation. Mackie-verbinding staat")
+                    "Logic confirms the connection, replying with confirmation. Mackie connection is up")
         case 0x13:
-            return (Self.header + [0x14] + version + [0xF7], "Logic vraagt versie")
+            return (Self.header + [0x14] + version + [0xF7], "Logic asks for the version")
         case 0x1A:
-            return (Self.header + [0x1B] + serial + [0xF7], "Logic vraagt serienummer")
+            return (Self.header + [0x1B] + serial + [0xF7], "Logic asks for the serial number")
         case 0x0F:
             online = false
-            return (nil, "Logic meldt: go offline")
+            return (nil, "Logic says: go offline")
         default:
             return (nil, nil)
         }

@@ -1,3 +1,4 @@
+import BridgeCore
 import CoreMIDI
 import Foundation
 
@@ -32,30 +33,30 @@ public final class MIDIIO {
         // Twee bridges tegelijk geeft twee poorten met dezelfde naam en verwarring in Logic
         if Self.sources().contains(where: { $0.name == Self.virtualName }) {
             throw NSError(domain: "BCFBridge", code: 1, userInfo: [NSLocalizedDescriptionKey:
-                "Er draait al een BCF Bridge (in Terminal of als app). Stop die eerst."])
+                tr("BCF Bridge is already running (in Terminal or as an app). Quit that one first.", "Er draait al een BCF Bridge (in Terminal of als app). Stop die eerst.")])
         }
         try check(MIDIClientCreateWithBlock("BCF Bridge" as CFString, &client) { [weak self] notif in
             guard let self else { return }
             if notif.pointee.messageID == .msgSetupChanged {
                 self.queue.async { self.onSetupChanged() }
             }
-        }, "MIDI-client aanmaken")
+        }, "create MIDI client")
 
         try check(MIDIInputPortCreateWithBlock(client, "BCF in" as CFString, &inPort) { [weak self] list, _ in
             guard let self else { return }
             let bytes = Self.bytes(from: list)
             self.queue.async { self.onBCFBytes(bytes) }
-        }, "invoerpoort aanmaken")
+        }, "create input port")
 
-        try check(MIDIOutputPortCreate(client, "BCF out" as CFString, &outPort), "uitvoerpoort aanmaken")
+        try check(MIDIOutputPortCreate(client, "BCF out" as CFString, &outPort), "create output port")
 
         // Logic leest van deze source en schrijft naar deze destination
-        try check(MIDISourceCreate(client, Self.virtualName as CFString, &virtualSource), "virtuele source aanmaken")
+        try check(MIDISourceCreate(client, Self.virtualName as CFString, &virtualSource), "create virtual source")
         try check(MIDIDestinationCreateWithBlock(client, Self.virtualName as CFString, &virtualDest) { [weak self] list, _ in
             guard let self else { return }
             let bytes = Self.bytes(from: list)
             self.queue.async { self.onLogicBytes(bytes) }
-        }, "virtuele destination aanmaken")
+        }, "create virtual destination")
 
         // Vaste ID's zodat Logic de poort na een herstart herkent
         MIDIObjectSetIntegerProperty(virtualSource, kMIDIPropertyUniqueID, 0x4243_4601)
@@ -78,7 +79,7 @@ public final class MIDIIO {
         if MIDIObjectGetStringProperty(obj, kMIDIPropertyName, &cf) == noErr, let s = cf?.takeRetainedValue() {
             return s as String
         }
-        return "(naamloos)"
+        return "(unnamed)"
     }
 
     static func uid(of obj: MIDIObjectRef) -> Int32 {
@@ -103,10 +104,12 @@ public final class MIDIIO {
 
     static let bridgeModelName = "BCF2000 Bridge"
 
-    /// Logic herkent de BCF2000 aan het model "BCF2000" en zet hem dan bij elke start opnieuw
-    /// als control surface neer. Met een andere modelnaam blijft Logic eraf. Alleen de naam in
-    /// CoreMIDI verandert, niet de BCF2000 zelf. Geeft true terug als er iets gewijzigd is.
-    static func hideBCFModelFromLogic() -> Bool {
+    /// Logic recognises the BCF2000 by its model name "BCF2000" and adds it as a control surface on
+    /// every launch. With another model name Logic leaves it alone. Only the name in CoreMIDI changes,
+    /// not the BCF2000 itself. Returns true when something was changed.
+    static func setBCFModelHidden(_ hidden: Bool) -> Bool {
+        let from = hidden ? "BCF2000" : bridgeModelName
+        let to = hidden ? bridgeModelName : "BCF2000"
         func str(_ o: MIDIObjectRef, _ k: CFString) -> String {
             var cf: Unmanaged<CFString>?
             guard MIDIObjectGetStringProperty(o, k, &cf) == noErr, let s = cf?.takeRetainedValue() else { return "" }
@@ -115,8 +118,8 @@ public final class MIDIIO {
         var changed = false
         for i in 0..<MIDIGetNumberOfDevices() {
             let d = MIDIGetDevice(i)
-            if str(d, kMIDIPropertyManufacturer).uppercased() == "BEHRINGER", str(d, kMIDIPropertyModel) == "BCF2000",
-               MIDIObjectSetStringProperty(d, kMIDIPropertyModel, bridgeModelName as CFString) == noErr {
+            if str(d, kMIDIPropertyManufacturer).uppercased() == "BEHRINGER", str(d, kMIDIPropertyModel) == from,
+               MIDIObjectSetStringProperty(d, kMIDIPropertyModel, to as CFString) == noErr {
                 changed = true
             }
         }
@@ -186,7 +189,7 @@ public final class MIDIIO {
     private func check(_ status: OSStatus, _ what: String) throws {
         if status != noErr {
             throw NSError(domain: "BCFBridge", code: Int(status),
-                          userInfo: [NSLocalizedDescriptionKey: "\(what) mislukt (OSStatus \(status))"])
+                          userInfo: [NSLocalizedDescriptionKey: "\(what) failed (OSStatus \(status))"])
         }
     }
 }

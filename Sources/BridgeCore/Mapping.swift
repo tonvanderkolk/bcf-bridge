@@ -25,6 +25,14 @@ public enum ButtonFunction: String, Codable, CaseIterable {
 }
 
 public enum EncoderMode: String, Codable {
+    public var label: String {
+        switch self {
+        case .absolute: return tr("absolute", "absoluut")
+        case .relativeTwosComplement: return tr("relative (1/127)", "relatief (1/127)")
+        case .relativeOffset64: return tr("relative (around 64)", "relatief (rond 64)")
+        }
+    }
+
     /// Encoder stuurt een stand 0-127 (BCF-fabriekspreset)
     case absolute
     /// 1..63 rechtsom, 127..65 linksom
@@ -54,10 +62,10 @@ public enum NavButton: String, Codable, CaseIterable {
 
     public var label: String {
         switch self {
-        case .bankLeft: return "Bank links"
-        case .bankRight: return "Bank rechts"
-        case .channelLeft: return "Kanaal links"
-        case .channelRight: return "Kanaal rechts"
+        case .bankLeft: return tr("Bank left", "Bank links")
+        case .bankRight: return tr("Bank right", "Bank rechts")
+        case .channelLeft: return tr("Channel left", "Kanaal links")
+        case .channelRight: return tr("Channel right", "Kanaal rechts")
         }
     }
 
@@ -86,8 +94,8 @@ public enum TransportButton: String, Codable, CaseIterable {
 
     public var label: String {
         switch self {
-        case .rewind: return "Terugspoelen"
-        case .forward: return "Vooruitspoelen"
+        case .rewind: return tr("Rewind", "Terugspoelen")
+        case .forward: return tr("Forward", "Vooruitspoelen")
         case .stop: return "Stop"
         case .play: return "Play"
         case .record: return "Record"
@@ -115,8 +123,8 @@ public struct ControlMapping: Codable, Equatable {
     public var key: Int { ((channel - 1) << 8) | cc }
 
     public var short: String {
-        var s = "CC \(cc) kan.\(channel)"
-        if let e = encoderMode { s += " (\(e == .absolute ? "absoluut" : "relatief"))" }
+        var s = "CC \(cc) " + tr("ch.", "kan.") + "\(channel)"
+        if let e = encoderMode { s += " (\(e == .absolute ? e.label : tr("relative", "relatief")))" }
         if let b = buttonMode { s += " (\(b == .toggle ? "toggle" : "momentary"))" }
         return s
     }
@@ -141,10 +149,10 @@ public enum LearnTarget: Hashable {
     public func label(_ s: BridgeSettings) -> String {
         switch self {
         case .fader(let i): return "Fader \(i + 1)"
-        case .encoder(let i): return "Encoder \(i + 1) (draaien)"
-        case .push(let i): return "Encoder \(i + 1) indrukken"
-        case .top(let i): return "Bovenste knoprij, knop \(i + 1) (\(s.topRowFunction.label))"
-        case .bottom(let i): return "Onderste knoprij, knop \(i + 1) (\(s.bottomRowFunction.label))"
+        case .encoder(let i): return tr("Encoder \(i + 1) (turn)", "Encoder \(i + 1) (draaien)")
+        case .push(let i): return tr("Encoder \(i + 1) push", "Encoder \(i + 1) indrukken")
+        case .top(let i): return tr("Top button row, button \(i + 1) (\(s.topRowFunction.label))", "Bovenste knoprij, knop \(i + 1) (\(s.topRowFunction.label))")
+        case .bottom(let i): return tr("Bottom button row, button \(i + 1) (\(s.bottomRowFunction.label))", "Onderste knoprij, knop \(i + 1) (\(s.bottomRowFunction.label))")
         case .nav(let n): return n.label
         case .transport(let t): return t.label
         }
@@ -152,9 +160,9 @@ public enum LearnTarget: Hashable {
 
     public var instruction: String {
         switch kind {
-        case .fader: return "beweeg de fader"
-        case .encoder: return "draai de encoder een paar tikken rechtsom"
-        case .button: return "druk de knop één keer kort in"
+        case .fader: return tr("move the fader", "beweeg de fader")
+        case .encoder: return tr("turn the encoder a few clicks clockwise", "draai de encoder een paar tikken rechtsom")
+        case .button: return tr("press the button once briefly", "druk de knop één keer kort in")
         }
     }
 
@@ -214,6 +222,8 @@ public struct BridgeSettings: Codable, Equatable {
     public var transport: [String: ControlMapping] = [:]
     public var touchReleaseMs = 400
     public var encoderIdleMs = 300
+    /// Rename the BCF2000 model in CoreMIDI so Logic does not auto-add it as a control surface
+    public var hideModelFromLogic = true
 
     /// Standaard: BCF2000 fabriekspreset 1 (faders CC 81-88, encoders CC 1-8, knoprijen CC 65-72 en 73-80,
     /// vier knoppen rechtsonder CC 89-92). Bevestigd met Tons BCF2000 op 4 november 2026.
@@ -234,7 +244,7 @@ public struct BridgeSettings: Codable, Equatable {
 
     enum CodingKeys: String, CodingKey {
         case version, faders, encoders, encoderPush, topRow, bottomRow, topRowFunction, bottomRowFunction
-        case nav, transport, touchReleaseMs, encoderIdleMs, fader1
+        case nav, transport, touchReleaseMs, encoderIdleMs, hideModelFromLogic, fader1
     }
 
     public init(from decoder: Decoder) throws {
@@ -257,6 +267,7 @@ public struct BridgeSettings: Codable, Equatable {
         transport = (try? c.decodeIfPresent([String: ControlMapping].self, forKey: .transport)) ?? transport
         touchReleaseMs = (try? c.decodeIfPresent(Int.self, forKey: .touchReleaseMs)) ?? touchReleaseMs
         encoderIdleMs = (try? c.decodeIfPresent(Int.self, forKey: .encoderIdleMs)) ?? encoderIdleMs
+        hideModelFromLogic = (try? c.decodeIfPresent(Bool.self, forKey: .hideModelFromLogic)) ?? hideModelFromLogic
         version = 2
     }
 
@@ -274,6 +285,7 @@ public struct BridgeSettings: Codable, Equatable {
         try c.encode(transport, forKey: .transport)
         try c.encode(touchReleaseMs, forKey: .touchReleaseMs)
         try c.encode(encoderIdleMs, forKey: .encoderIdleMs)
+        try c.encode(hideModelFromLogic, forKey: .hideModelFromLogic)
     }
 
     // MARK: Per leerdoel lezen en schrijven
@@ -327,7 +339,7 @@ public struct BridgeSettings: Codable, Equatable {
             .appendingPathComponent("Library/Application Support/BCF Bridge", isDirectory: true)
     }
     public static var file: URL { folder.appendingPathComponent("mapping.json") }
-    public static var backup: URL { folder.appendingPathComponent("mapping.vorige.json") }
+    public static var backup: URL { folder.appendingPathComponent("mapping.backup.json") }
 
     public static func load() -> BridgeSettings {
         guard let data = try? Data(contentsOf: file),

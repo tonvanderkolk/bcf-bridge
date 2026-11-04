@@ -33,32 +33,32 @@ struct MenuView: View {
             HStack {
                 Text("BCF Bridge").font(.headline)
                 Spacer()
-                Text("versie \(bridgeVersion)").font(.caption).foregroundStyle(.secondary)
+                Text(tr("version", "versie") + " \(bridgeVersion)").font(.caption).foregroundStyle(.secondary)
             }
 
             if let err = model.startError {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(err).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
-                    Button("Opnieuw proberen") { model.start() }
+                    Button(tr("Try again", "Opnieuw proberen")) { model.start() }
                 }
             }
 
             VStack(spacing: 6) {
                 StatusRow(title: "BCF2000", ok: model.bcfConnected,
-                          detail: model.bcfConnected ? (model.status.bcfIn ?? "") : "niet gevonden")
+                          detail: model.bcfConnected ? (model.status.bcfIn ?? "") : tr("not found", "niet gevonden"))
                 StatusRow(title: "Logic", ok: model.status.logicOnline,
-                          detail: model.status.logicOnline ? "verbonden als Mackie Control" : "wacht op Logic")
+                          detail: model.status.logicOnline ? tr("connected as Mackie Control", "verbonden als Mackie Control") : tr("waiting for Logic", "wacht op Logic"))
             }
 
             Divider()
 
             if let prompt = model.status.learnPrompt {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Leren").font(.subheadline).fontWeight(.semibold)
+                    Text(tr("Learning", "Leren")).font(.subheadline).fontWeight(.semibold)
                     Text(prompt).fixedSize(horizontal: false, vertical: true)
                     HStack {
-                        Button("Overslaan") { model.engine.learnSkip() }
-                        Button("Stoppen") { model.engine.learnStop() }
+                        Button(tr("Skip", "Overslaan")) { model.engine.learnSkip() }
+                        Button(tr("Stop", "Stoppen")) { model.engine.learnStop() }
                     }
                 }
                 .padding(8)
@@ -67,7 +67,7 @@ struct MenuView: View {
 
             Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 8) {
                 GridRow {
-                    Text("Bovenste knoprij")
+                    Text(tr("Top button row", "Bovenste knoprij"))
                     Picker("", selection: Binding(get: { settings.topRowFunction }, set: { model.setTopRow($0) })) {
                         ForEach(ButtonFunction.allCases, id: \.self) { Text($0.label).tag($0) }
                     }
@@ -75,7 +75,7 @@ struct MenuView: View {
                     .frame(width: 110)
                 }
                 GridRow {
-                    Text("Onderste knoprij")
+                    Text(tr("Bottom button row", "Onderste knoprij"))
                     Picker("", selection: Binding(get: { settings.bottomRowFunction }, set: { model.setBottomRow($0) })) {
                         ForEach(ButtonFunction.allCases, id: \.self) { Text($0.label).tag($0) }
                     }
@@ -83,7 +83,7 @@ struct MenuView: View {
                     .frame(width: 110)
                 }
                 GridRow {
-                    Text("Fader loslaten na")
+                    Text(tr("Release fader after", "Fader loslaten na"))
                     Stepper("\(settings.touchReleaseMs) ms",
                             value: Binding(get: { settings.touchReleaseMs }, set: { model.setReleaseMs($0) }),
                             in: 100...2000, step: 50)
@@ -100,24 +100,29 @@ struct MenuView: View {
             Divider()
 
             HStack {
-                Button("Alles leren") { model.engine.learnAll() }
+                Button(tr("Learn all", "Alles leren")) { model.engine.learnAll() }
                     .disabled(model.status.learnPrompt != nil)
-                Button("Exporteren") { model.exportMapping() }
-                Button("Importeren") { model.importMapping() }
+                Button(tr("Export", "Exporteren")) { model.exportMapping() }
+                Button(tr("Import", "Importeren")) { model.importMapping() }
             }
             HStack {
-                Button("Mapping bekijken") { model.showMappingWindow() }
-                Button("Standaardmapping herstellen") { model.confirmReset() }
+                Button(tr("Show mapping", "Mapping bekijken")) { model.showMappingWindow() }
+                Button(tr("Reset to default", "Standaardmapping herstellen")) { model.confirmReset() }
             }
 
-            Toggle("Starten bij inloggen", isOn: Binding(get: { model.launchAtLogin }, set: { model.setLaunchAtLogin($0) }))
+            Toggle(tr("Launch at login", "Starten bij inloggen"), isOn: Binding(get: { model.launchAtLogin }, set: { model.setLaunchAtLogin($0) }))
+            Toggle(isOn: Binding(get: { settings.hideModelFromLogic }, set: { model.engine.setHideModelFromLogic($0) })) {
+                Text(tr("Keep Logic from adding the BCF2000 as an extra control surface",
+                        "Voorkom dat Logic de BCF2000 als extra control surface toevoegt"))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             Divider()
 
             HStack {
-                Button("Log tonen") { model.showLogWindow() }
+                Button(tr("Show log", "Log tonen")) { model.showLogWindow() }
                 Spacer()
-                Button("BCF Bridge afsluiten") { NSApp.terminate(nil) }
+                Button(tr("Quit BCF Bridge", "BCF Bridge afsluiten")) { NSApp.terminate(nil) }
             }
         }
         .padding(14)

@@ -2,6 +2,8 @@
 # Bouwt "BCF Bridge.app" in de map build/.
 # Met "install" erachter wordt de app ook naar /Applications gekopieerd en gestart:
 #   scripts/build-app.sh install
+# Met "release" komt er een zip voor GitHub Releases in build/:
+#   scripts/build-app.sh release
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -22,6 +24,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key><string>BCF Bridge</string>
+    <key>CFBundleDevelopmentRegion</key><string>en</string>
+    <key>NSHumanReadableCopyright</key><string>© 2026 Ton van der Kolk, MIT License</string>
     <key>CFBundleIdentifier</key><string>nl.tonvanderkolk.bcf-bridge</string>
     <key>CFBundleName</key><string>BCF Bridge</string>
     <key>CFBundleDisplayName</key><string>BCF Bridge</string>
@@ -50,4 +54,11 @@ if [[ "${1:-}" == "install" ]]; then
     cp -R "$APP" /Applications/
     open "/Applications/BCF Bridge.app"
     echo "Geïnstalleerd in /Applications en gestart. Kijk rechtsboven in de menubalk."
+fi
+
+if [[ "${1:-}" == "release" ]]; then
+    ZIP="build/BCF-Bridge-$VERSION.zip"
+    rm -f "$ZIP"
+    ditto -c -k --keepParent "$APP" "$ZIP"
+    echo "Release-zip: $ZIP"
 fi
