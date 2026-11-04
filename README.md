@@ -8,7 +8,7 @@ BCF Bridge is a small macOS menu bar app. The BCF2000 runs in its plain CC mode 
 
 ## Why
 
-The BCF2000 has a built-in Logic Control emulation, but in Logic Pro it tends to misbehave: faders jump back while you move them, mute and pan react strangely, and Logic keeps adding a "BCF2000" control surface on every launch. BCF Bridge works around all of that without touching the BCF2000 firmware:
+The BCF2000 has a built-in Logic Control emulation, but in recent versions of Logic Pro it tends to misbehave: faders jump back while you move them, mute and pan react strangely, and Logic keeps adding a "BCF2000" control surface on every launch. BCF Bridge works around all of that without touching the BCF2000 firmware:
 
 - **Faders stay put.** The BCF2000 has no touch-sensitive faders, so the bridge simulates touch: as soon as you move a fader, Logic is told it is touched and its feedback is held back. 400 ms after you stop moving (adjustable), the fader is released and the motor follows Logic again.
 - **Encoders as V-Pots.** Absolute encoders are converted to relative V-Pot steps, and the LED rings show Logic's value.
