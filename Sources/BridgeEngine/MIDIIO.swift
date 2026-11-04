@@ -101,6 +101,28 @@ public final class MIDIIO {
         }
     }
 
+    static let bridgeModelName = "BCF2000 Bridge"
+
+    /// Logic herkent de BCF2000 aan het model "BCF2000" en zet hem dan bij elke start opnieuw
+    /// als control surface neer. Met een andere modelnaam blijft Logic eraf. Alleen de naam in
+    /// CoreMIDI verandert, niet de BCF2000 zelf. Geeft true terug als er iets gewijzigd is.
+    static func hideBCFModelFromLogic() -> Bool {
+        func str(_ o: MIDIObjectRef, _ k: CFString) -> String {
+            var cf: Unmanaged<CFString>?
+            guard MIDIObjectGetStringProperty(o, k, &cf) == noErr, let s = cf?.takeRetainedValue() else { return "" }
+            return s as String
+        }
+        var changed = false
+        for i in 0..<MIDIGetNumberOfDevices() {
+            let d = MIDIGetDevice(i)
+            if str(d, kMIDIPropertyManufacturer).uppercased() == "BEHRINGER", str(d, kMIDIPropertyModel) == "BCF2000",
+               MIDIObjectSetStringProperty(d, kMIDIPropertyModel, bridgeModelName as CFString) == noErr {
+                changed = true
+            }
+        }
+        return changed
+    }
+
     /// Koppelt (opnieuw) aan de BCF2000. Geeft true terug als er iets veranderd is.
     @discardableResult
     func connectBCF(inMatch: String, outMatch: String) -> Bool {

@@ -1,7 +1,7 @@
 import BridgeCore
 import Foundation
 
-public let bridgeVersion = "0.3.1"
+public let bridgeVersion = "0.3.2"
 
 public struct EngineOptions {
     public var inMatch = "BCF2000"
@@ -244,6 +244,9 @@ public final class BridgeEngine {
 
     private func reconnect() {
         let hadIn = io.bcfIn?.name, hadOut = io.bcfOut?.name
+        if MIDIIO.hideBCFModelFromLogic() {
+            log.line("Typenaam BCF2000 gewijzigd in \"\(MIDIIO.bridgeModelName)\", zodat Logic hem niet automatisch als control surface toevoegt")
+        }
         io.connectBCF(inMatch: options.inMatch, outMatch: options.outMatch)
         let force = firstConnect
         firstConnect = false

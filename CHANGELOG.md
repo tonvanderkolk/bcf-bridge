@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2 - 2026-11-04
+- Logic zette na elke start een nieuwe BCF2000 als control surface neer. De bridge zet nu bij het starten de modelnaam van de BCF2000 in CoreMIDI op "BCF2000 Bridge", waarna Logic hem niet meer herkent. De BCF2000 zelf blijft ongewijzigd
+- Hulpscript `scripts/set-bcf-model.swift` om de modelnaam met de hand te zetten of terug te zetten
+
 ## 0.3.1 - 2026-11-04
 - App-icoon (drie faders), te herbouwen met `scripts/make-icon.swift`
 - TESTEN.md: automatisch toegevoegde BCF2000 in Logic niet verwijderen maar op een doodlopende poort zetten

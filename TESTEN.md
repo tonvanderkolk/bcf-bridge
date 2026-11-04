@@ -36,7 +36,7 @@ Kijk in **Control Surfaces > Setup** of er nog steeds precies één Mackie Contr
 
 1. Ga naar **Logic Pro > Control Surfaces > Setup...**
 2. Daar mag alleen **Mackie Control** staan, met **Output Port** en **Input Port** op **BCF Bridge**.
-3. Staat er ook een **BCF2000** (toetsenbord-icoon)? Verwijder die niet, want dan voegt Logic hem bij de volgende start weer toe. Zet in plaats daarvan bij die BCF2000 **Output Port** op **Logic Pro Virtual Out** en **Input Port** op een poort die niets met de BCF te maken heeft (niet BCF LC, niet BCF Bridge, niet All). Dan denkt Logic dat hij al geïnstalleerd is en blijft hij er buiten.
+3. Staat er ook een **BCF2000** (toetsenbord-icoon)? Klik erop en druk op **Delete**. Sinds versie 0.3.2 geeft de bridge de BCF2000 een andere modelnaam, waardoor Logic hem niet meer zelf toevoegt. Komt hij toch terug, laat het Claude Code weten.
 
 ## Bridge bouwen en starten
 
