@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1 - 2026-11-04
+- Standaardmapping aangevuld met de vier knoppen rechtsonder (CC 89-92: bank links/rechts, kanaal links/rechts), bevestigd met de echte BCF2000
+- Commando `reset` zet de mapping terug naar de standaard, vorige versie blijft bewaard
+- Tijdens het leren worden berichten van Logic niet getoond, zodat de LEARN-regels zichtbaar blijven
+
 ## 0.2.0 - 2026-11-04
 - Faders 1-8 met gesimuleerde touch en feedback-onderdrukking
 - Encoders 1-8 als V-Pots, absoluut of relatief, encoderstand volgt de LED-krans van Logic

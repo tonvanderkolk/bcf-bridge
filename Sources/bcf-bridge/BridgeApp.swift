@@ -1,7 +1,7 @@
 import BridgeCore
 import Foundation
 
-let appVersion = "0.2.0"
+let appVersion = "0.2.1"
 
 struct Options {
     var inMatch = "BCF2000"
@@ -91,6 +91,7 @@ final class BridgeApp {
           row1 mute          functie bovenste knoprij (mute, solo, select of rec)
           row2 solo          functie onderste knoprij
           mapping            toon wat waaraan gekoppeld is
+          reset              alles terug naar de standaard (vorige versie wordt bewaard)
           status             toon verbinding en stand
           release 400        fader-touch loslaten na zoveel ms stilstand
           logall             meters en display-berichten wel/niet loggen
@@ -152,7 +153,8 @@ final class BridgeApp {
     }
 
     private func handleLogic(_ m: [UInt8]) {
-        let noisy = MIDIDescribe.isNoisyLogicMessage(m)
+        // Tijdens leren Logic-berichten niet tonen, zodat de LEARN-regels zichtbaar blijven
+        let noisy = MIDIDescribe.isNoisyLogicMessage(m) || learner.isActive
         if noisy && !options.logAll {
             hiddenCount += 1
         } else {
@@ -217,6 +219,14 @@ final class BridgeApp {
             learner.skip()
         case "stop" where learner.isActive:
             learner.stop()
+        case "reset":
+            learner.stop()
+            var fresh = BridgeSettings()
+            fresh.touchReleaseMs = settings.touchReleaseMs
+            settings = fresh
+            router.update(settings)
+            saveSettings("Mapping teruggezet naar de standaard (vorige versie bewaard als \(BridgeSettings.backup.lastPathComponent))")
+            printMapping()
         case "row1", "row2":
             guard words.count > 1, let f = ButtonFunction(rawValue: words[1]) else {
                 log.line("Gebruik: \(cmd) mute   (mute, solo, select of rec)")

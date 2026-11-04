@@ -201,13 +201,21 @@ public struct BridgeSettings: Codable, Equatable {
     public var touchReleaseMs = 400
     public var encoderIdleMs = 300
 
-    /// Standaard: BCF2000 fabriekspreset 1 (faders CC 81-88, encoders CC 1-8, knoprijen CC 65-72 en 73-80).
+    /// Standaard: BCF2000 fabriekspreset 1 (faders CC 81-88, encoders CC 1-8, knoprijen CC 65-72 en 73-80,
+    /// vier knoppen rechtsonder CC 89-92). Bevestigd met Tons BCF2000 op 4 november 2026.
     public init() {
         faders = (0..<8).map { ControlMapping(channel: 1, cc: 81 + $0) }
         encoders = (0..<8).map { ControlMapping(channel: 1, cc: 1 + $0, encoderMode: .absolute) }
         encoderPush = Array(repeating: nil, count: 8)
         topRow = (0..<8).map { ControlMapping(channel: 1, cc: 65 + $0, buttonMode: .toggle) }
         bottomRow = (0..<8).map { ControlMapping(channel: 1, cc: 73 + $0, buttonMode: .toggle) }
+        // Rechtsonder: bovenste twee = bank, onderste twee = kanaal
+        nav = [
+            NavButton.bankLeft.rawValue: ControlMapping(channel: 1, cc: 89, buttonMode: .toggle),
+            NavButton.bankRight.rawValue: ControlMapping(channel: 1, cc: 90, buttonMode: .toggle),
+            NavButton.channelLeft.rawValue: ControlMapping(channel: 1, cc: 91, buttonMode: .toggle),
+            NavButton.channelRight.rawValue: ControlMapping(channel: 1, cc: 92, buttonMode: .toggle),
+        ]
     }
 
     enum CodingKeys: String, CodingKey {
