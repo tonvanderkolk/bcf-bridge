@@ -1,5 +1,20 @@
 # Testinstructies
 
+## Testronde 4: mapping in de app (versie 0.4.0)
+
+1. Plak in Terminal (één regel, Enter):
+
+```bash
+cd "/Users/tonvanderkolk/Documents/TvdK Apps/BCF Bridge" && scripts/build-app.sh install
+```
+
+2. Klik op het menubalk-icoon en dan op **Mapping bekijken**.
+3. Je ziet alle faders, encoders en knoppen met hun CC-nummer.
+4. Klik bij **Fader 1** op **Leren** en beweeg fader 1. De regel moet weer `CC 81 kan.1` tonen, met een groene bevestiging bovenin.
+5. Probeer ook een encoder: klik op **Leren**, draai een paar tikken rechtsom en laat los.
+
+---
+
 ## Testronde 3: menubalk-app (versie 0.3.0)
 
 ### 1. Terminal-bridge stoppen

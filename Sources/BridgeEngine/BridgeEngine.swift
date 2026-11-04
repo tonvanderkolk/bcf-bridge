@@ -1,7 +1,7 @@
 import BridgeCore
 import Foundation
 
-public let bridgeVersion = "0.3.2"
+public let bridgeVersion = "0.4.0"
 
 public struct EngineOptions {
     public var inMatch = "BCF2000"
@@ -148,6 +148,8 @@ public final class BridgeEngine {
 
     public func command(_ raw: String) { queue.async { self.runCommand(raw) } }
     public func learnAll() { command("learn") }
+    public func learn(_ t: LearnTarget) { command("learn \(t.command)") }
+    public func clearMapping(_ t: LearnTarget) { command("clear \(t.command)") }
     public func learnSkip() { command("skip") }
     public func learnStop() { queue.async { self.learner.stop() } }
     public func resetMapping() { command("reset") }
@@ -220,6 +222,7 @@ public final class BridgeEngine {
           release 400        fader-touch loslaten na zoveel ms stilstand
           logall             meters en display-berichten wel/niet loggen
           ports              toon MIDI-poorten
+          clear <element>    koppeling van één element wissen, bijvoorbeeld clear play
           help               dit overzicht
           quit               stoppen
         """)
@@ -348,6 +351,14 @@ public final class BridgeEngine {
                 learner.start([t])
             } else {
                 log.line("Onbekend leerdoel: \(raw). Voorbeelden: learn fader 3, learn encoder 2, learn top 1, learn bankleft, learn play")
+            }
+        case "clear":
+            if let t = LearnTarget.parse(Array(words.dropFirst())) {
+                settings.set(nil, for: t)
+                router.update(settings)
+                saveSettings("\(t.label(settings)) ontkoppeld")
+            } else {
+                log.line("Onbekend element: \(raw). Voorbeeld: clear play")
             }
         case "skip":
             learner.skip()

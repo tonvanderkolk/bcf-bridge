@@ -28,8 +28,12 @@
 - [x] Logic voegt de BCF2000 niet meer automatisch toe (modelnaam in CoreMIDI aangepast)
 - [x] Test met Ton: app installeren, starten bij inloggen, werken met Logic na herstart, één Mackie Control (4 november 2026)
 
+## 0.4 Mapping in de app
+- [x] Mappingvenster met alle koppelingen
+- [x] Per element opnieuw leren of wissen
+- [ ] Test met Ton
+
 ## Later
-- [ ] Mapping bekijken en per element opnieuw leren vanuit de app
 - [ ] Onderzoeken of een eigen BCF2000-preset faders als 14-bit Pitch Bend kan sturen
 - [ ] Vrij te kiezen in- en uitgangspoort in de app (5-pins MIDI via interface)
 

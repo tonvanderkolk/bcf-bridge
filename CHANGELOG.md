@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0 - 2026-11-04
+- Mappingvenster in de app ("Mapping bekijken"): alle koppelingen per groep, per element opnieuw leren of wissen
+- Tekstcommando `clear <element>` wist de koppeling van één element
+- "Alles leren" slaat transport over, omdat de BCF2000 alleen voor mixen wordt gebruikt
+
 ## 0.3.2 - 2026-11-04
 - Logic zette na elke start een nieuwe BCF2000 als control surface neer. De bridge zet nu bij het starten de modelnaam van de BCF2000 in CoreMIDI op "BCF2000 Bridge", waarna Logic hem niet meer herkent. De BCF2000 zelf blijft ongewijzigd
 - Hulpscript `scripts/set-bcf-model.swift` om de modelnaam met de hand te zetten of terug te zetten

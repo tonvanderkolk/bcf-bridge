@@ -105,7 +105,10 @@ struct MenuView: View {
                 Button("Exporteren") { model.exportMapping() }
                 Button("Importeren") { model.importMapping() }
             }
-            Button("Standaardmapping herstellen") { model.confirmReset() }
+            HStack {
+                Button("Mapping bekijken") { model.showMappingWindow() }
+                Button("Standaardmapping herstellen") { model.confirmReset() }
+            }
 
             Toggle("Starten bij inloggen", isOn: Binding(get: { model.launchAtLogin }, set: { model.setLaunchAtLogin($0) }))
 

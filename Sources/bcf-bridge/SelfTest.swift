@@ -184,5 +184,9 @@ enum SelfTest {
         } else {
             expect(false, "opslaan en teruglezen")
         }
+        let roundTrip = BridgeSettings.allTargets.allSatisfy {
+            LearnTarget.parse($0.command.split(separator: " ").map(String.init)) == $0
+        }
+        expect(roundTrip, "elk element is als tekstcommando terug te lezen")
     }
 }

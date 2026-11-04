@@ -158,11 +158,25 @@ public enum LearnTarget: Hashable {
         }
     }
 
-    /// Volgorde van "alles leren". Encoder indrukken zit er niet in (los te leren).
+    /// Volgorde van "alles leren". Encoder indrukken en transport zitten er niet in (los te leren).
+    /// Transport is weggelaten omdat Ton de BCF2000 alleen voor mixen gebruikt.
     public static var learnAllOrder: [LearnTarget] {
         (0..<8).map { .fader($0) } + (0..<8).map { .encoder($0) }
             + (0..<8).map { .top($0) } + (0..<8).map { .bottom($0) }
-            + NavButton.allCases.map { .nav($0) } + TransportButton.allCases.map { .transport($0) }
+            + NavButton.allCases.map { .nav($0) }
+    }
+
+    /// Tekstvorm die `parse` weer terugleest, bijvoorbeeld "fader 3" of "bankleft".
+    public var command: String {
+        switch self {
+        case .fader(let i): return "fader \(i + 1)"
+        case .encoder(let i): return "encoder \(i + 1)"
+        case .push(let i): return "push \(i + 1)"
+        case .top(let i): return "top \(i + 1)"
+        case .bottom(let i): return "bottom \(i + 1)"
+        case .nav(let n): return n.command
+        case .transport(let t): return t.rawValue
+        }
     }
 
     /// Leest bijvoorbeeld "fader 3", "encoder 2", "push 1", "top 4", "bottom 5", "bankleft", "play".

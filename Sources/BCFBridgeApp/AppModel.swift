@@ -34,6 +34,7 @@ final class AppModel: ObservableObject {
     private let buffer = LogBuffer()
     private var nextID = 0
     private var logWindow: NSWindow?
+    private var mappingWindow: NSWindow?
     private let maxLines = 3000
 
     @Published var status = EngineStatus()
@@ -191,5 +192,20 @@ final class AppModel: ObservableObject {
         }
         NSApp.activate(ignoringOtherApps: true)
         logWindow?.makeKeyAndOrderFront(nil)
+    }
+
+    func showMappingWindow() {
+        if mappingWindow == nil {
+            let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 560, height: 640),
+                             styleMask: [.titled, .closable, .resizable, .miniaturizable],
+                             backing: .buffered, defer: false)
+            w.title = "BCF Bridge mapping"
+            w.isReleasedWhenClosed = false
+            w.contentView = NSHostingView(rootView: MappingView().environmentObject(self))
+            w.center()
+            mappingWindow = w
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        mappingWindow?.makeKeyAndOrderFront(nil)
     }
 }
